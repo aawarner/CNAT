@@ -33,6 +33,19 @@ def getcreds():
     password = getpass.getpass()
     return url, username, password
 
+#Find the keys and values in JSON output with nested dictionary and lists
+def find(key, dictionary):
+    for k, v in dictionary.items():
+        if k == key:
+            yield v
+        elif isinstance(v, dict):
+            for result in find(key, v):
+                yield result
+        elif isinstance(v, list):
+            for d in v:
+                for result in find(key, d):
+                    yield result
+
 #Menu Options
 def print_options():
     print("Options: ")
@@ -64,30 +77,43 @@ while choice != "q":
         choice = input("Option: ")
     elif choice == "2":
         #API call to list running VNFs, display info, return to options
-        print("Currently Running VNF's...")
+        print("Currently Deployed VNF's...")
         response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
                                 headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
         print(response.status_code)
         print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
         try:
             parsed_json = json.loads(response.content)
-            print(json.dumps(parsed_json, indent = 4,sort_keys=False))
+            vnf_names = list(find('name', parsed_json))
+            for vnf in vnf_names:
+                print(vnf)
         except Exception as e:
             print(repr(e))
         print_options()
         choice = input("Option: ")
     elif choice == "3":
         #API call to delete VNF on NFVIS device
-        vnf = input("What VNF would you like to delete?")
-        response = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
+        response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
+                                headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
+        print(response.status_code)
+        print("Currently Deployed VNFs: ")
+        try:
+            parsed_json = json.loads(response.content)
+            vnf_names = list(find('name', parsed_json))
+            for vnf in vnf_names:
+                print(vnf)
+        except Exception as e:
+            print(repr(e))
+        vnf = input("What VNF would you like to delete? ")
+        response1 = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
                                 headers={'content-type': 'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
         print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf)
-        if response.status_code != 204:
+        if response1.status_code != 204:
             print("VNF deletion failed")
-            print(response.status_code)
+            print(response1.status_code)
         else:
             print("VNF deletion successful")
-            print(response.status_code)
+            print(response1.status_code)
         print_options()
         choice = input("Option: ")
     elif choice == "4":
