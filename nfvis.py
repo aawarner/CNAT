@@ -20,6 +20,19 @@ requests.packages.urllib3.disable_warnings()
 
 print("####DNA Demo Automation Tool####")
 
+#Find the keys and values in JSON output with nested dictionary and lists
+def find(key, dictionary):
+    for k, v in dictionary.items():
+        if k == key:
+            yield v
+        elif isinstance(v, dict):
+            for result in find(key, v):
+                yield result
+        elif isinstance(v, list):
+            for d in v:
+                for result in find(key, d):
+                    yield result
+
 def getcreds():
     #Collects NFVIS IP Address, Username, and Password
     global nfvis
@@ -39,9 +52,13 @@ def sdwan_reset():
                             auth=HTTPBasicAuth(vmanage_username, vmanage_password),
                             headers={'content-type': 'application/json', 'Accept': 'application/json'})
     print(response.status_code)
-    data = response.json()
-    for event in data["data"]:
-        print(event["uuid"])
+    try:
+        parsed_json = json.loads(response.content)
+        sdwan_uuid = list(find('uuid', parsed_json))
+        for uuid in sdwan_uuid:
+            print(uuid)
+    except Exception as e:
+        print(repr(e))
     uuid = input("Enter the UUID of the SDWAN router you wish to decommission.")
     print("Deccommissioning SDWAN Router...")
     response = requests.put("https://" + vmanage + "/dataservice/system/device/decommission/" + uuid, verify=False,
@@ -67,9 +84,10 @@ def nfvis_reset():
     print(response.status_code)
     print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
     try:
-        data = response.json()
-        for event in data["vmlc:deployments"]["deployment"]:
-            print(event["name"])
+        parsed_json = json.loads(response.content)
+        vnf_names = list(find('name', parsed_json))
+        for vnf in vnf_names:
+            print(vnf)
     except Exception as e:
         print(repr(e))
     vnf = input("What VNF would you like to delete? ")
@@ -124,9 +142,10 @@ while choice != "q":
         print(response.status_code)
         print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
         try:
-            data = response.json()
-            for event in data["vmlc:deployments"]["deployment"]:
-                print(event["name"])
+            parsed_json = json.loads(response.content)
+            vnf_names = list(find('name', parsed_json))
+            for vnf in vnf_names:
+                print(vnf)
         except Exception as e:
             print(repr(e))
         print_options()
@@ -139,9 +158,10 @@ while choice != "q":
         print(response.status_code)
         print("Currently Deployed VNFs: ")
         try:
-            data = response.json()
-            for event in data["vmlc:deployments"]["deployment"]:
-                print(event["name"])
+            parsed_json = json.loads(response.content)
+            vnf_names = list(find('name', parsed_json))
+            for vnf in vnf_names:
+                print(vnf)
         except Exception as e:
             print(repr(e))
         vnf = input("What VNF would you like to delete? ")
