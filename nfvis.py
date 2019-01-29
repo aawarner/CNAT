@@ -69,14 +69,19 @@ def nfvis_reset():
                             auth=HTTPBasicAuth(username, password),
                             headers={'content-type': 'application/vnd.yang.collection+json',
                                      'Accept': 'application/vnd.yang.data+json'})
-    print(response.status_code)
+    print("API Response Code: ", response.status_code)
     print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
+    print()
     try:
         data = response.json()
         for event in data["vmlc:deployments"]["deployment"]:
             print(event["name"])
     except Exception as e:
-        print(repr(e))
+        if response.status_code == 204:
+            print("There are no running VNF deployments on device.")
+            return
+        else:
+            print(repr(e))
     print()
     vnf = input("What VNF would you like to delete? ")
     response = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf,
@@ -90,6 +95,30 @@ def nfvis_reset():
     else:
         print("VNF deletion successful")
         print(response.status_code)
+    return
+
+def dnac_reset():
+    response = requests.post("https://" + dnac + "/api/system/v1/auth/token", verify=False,
+                            auth=HTTPBasicAuth(dnac_username, dnac_password),
+                            headers={'content-type': 'application/json', 'x-auth-token': ''})
+    ticket = response.json()["Token"]
+    print("API Response Code: ", response.status_code)
+    print("Auth Token: ", ticket)
+    print()
+    response1 = request.get("https://" + dnac + "/api/v1/network-device", verify=False,
+                            auth=HTTPBasicAuth(dnac_username, dnac_password),
+                            headers={'content-type': 'application/json', 'x-auth-token': ticket})
+    print("API Response Code: ", response1.status_code)
+    print()
+    print("Getting list of Network Devices in inventory from DNA-C")
+    print()
+    data = response1.json()
+#    print(data)
+    for event in data["response"]:
+        print("Hostname: ", event["hostname"])
+    # API CALL TO LIST INVENTORY
+    # API CALL TO DELETE ENCS FROM Inventory
+    # API CALL TO REDISCOVER ENCS
     return
 
 #Menu Options
@@ -218,6 +247,7 @@ while choice != "q":
             else:
                 print("Great. Let's reset NFVIS.")
             nfvis_reset()
+            print()
             answer = input("Would you like to decommission another NFVIS VNF? (y or n)")
             if answer == ('y'):
                 nfvis_reset()
@@ -225,11 +255,9 @@ while choice != "q":
                 print("Great. Let's reset Cisco DNA Center.")
             dnac = input("Enter the Cisco DNA Center IP address: ")
             print("Enter the Username and Password for Cisco DNA Center: ")
-            dnac_username = input("Username:")
+            dnac_username = input("Username: ")
             dnac_password = getpass.getpass()
-    # API CALL TO LIST INVENTORY
-    # API CALL TO DELETE ENCS FROM Inventory
-    # API CALL TO REDISCOVER ENCS
+            dnac_reset()
             print_options()
             choice = input("Option: ")
         elif choice == "c":
