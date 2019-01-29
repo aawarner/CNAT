@@ -98,24 +98,24 @@ def nfvis_reset():
     return
 
 def dnac_reset():
+    headers = {'content-type' : 'application/json'}
     response = requests.post("https://" + dnac + "/api/system/v1/auth/token", verify=False,
                             auth=HTTPBasicAuth(dnac_username, dnac_password),
-                            headers={'content-type': 'application/json', 'x-auth-token': ''})
-    ticket = response.json()["Token"]
+                            headers=headers)
+    token = response.json()["Token"]
+    headers['x-auth-token'] = token
     print("API Response Code: ", response.status_code)
-    print("Auth Token: ", ticket)
+    print("Auth Token: ", token)
     print()
-    response1 = request.get("https://" + dnac + "/api/v1/network-device", verify=False,
-                            auth=HTTPBasicAuth(dnac_username, dnac_password),
-                            headers={'content-type': 'application/json', 'x-auth-token': ticket})
-    print("API Response Code: ", response1.status_code)
+    response = requests.get("https://" + dnac + "/api/v1/network-device", headers=headers, verify=False)
+    print("API Response Code: ", response.status_code)
     print()
     print("Getting list of Network Devices in inventory from DNA-C")
     print()
-    data = response1.json()
+    data = response.json()
 #    print(data)
     for event in data["response"]:
-        print("Hostname: ", event["hostname"])
+        print("Hostname: ", event["hostname"], "with Device ID: ", event["id"])
     # API CALL TO LIST INVENTORY
     # API CALL TO DELETE ENCS FROM Inventory
     # API CALL TO REDISCOVER ENCS
