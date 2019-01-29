@@ -11,6 +11,7 @@
 # Repackage SDWAN NFVIS tar balls
 # Upload packages tar ball to site
 
+import sys
 import requests
 import json
 from requests.auth import HTTPBasicAuth
@@ -20,19 +21,6 @@ requests.packages.urllib3.disable_warnings()
 
 print("####DNA Demo Automation Tool####")
 
-#Find the keys and values in JSON output with nested dictionary and lists
-def find(key, dictionary):
-    for k, v in dictionary.items():
-        if k == key:
-            yield v
-        elif isinstance(v, dict):
-            for result in find(key, v):
-                yield result
-        elif isinstance(v, list):
-            for d in v:
-                for result in find(key, d):
-                    yield result
-
 def getcreds():
     #Collects NFVIS IP Address, Username, and Password
     global nfvis
@@ -41,30 +29,30 @@ def getcreds():
     url = "https://" + nfvis
     print("Enter your username and password.")
     global username
-    username = input("Username:")
+    username = input("Username: ")
     global password
     password = getpass.getpass()
     return
 
 def sdwan_reset():
-    print("Getting list of SDWAN UUID's from vManage")
     response = requests.get("https://" + vmanage + "/dataservice/system/device/vedges", verify=False,
                             auth=HTTPBasicAuth(vmanage_username, vmanage_password),
                             headers={'content-type': 'application/json', 'Accept': 'application/json'})
-    print(response.status_code)
-    try:
-        parsed_json = json.loads(response.content)
-        sdwan_uuid = list(find('uuid', parsed_json))
-        for uuid in sdwan_uuid:
-            print(uuid)
-    except Exception as e:
-        print(repr(e))
-    uuid = input("Enter the UUID of the SDWAN router you wish to decommission.")
+    print("API Response Code: ", response.status_code)
+    print()
+    print("Getting list of SDWAN UUID's from vManage:")
+    print()
+    data = response.json()
+    for event in data["data"]:
+        print(event["uuid"])
+    print()
+    uuid = input("Enter the UUID of the SDWAN router you wish to decommission: ")
     print("Deccommissioning SDWAN Router...")
     response = requests.put("https://" + vmanage + "/dataservice/system/device/decommission/" + uuid, verify=False,
                             auth=HTTPBasicAuth(vmanage_username, vmanage_password),
                             headers={'content-type': 'application/json', 'Accept': 'application/json'})
-    print(response.status_code)
+    print("API Response Code: ", response.status_code)
+    print()
     if response.status_code != 200:
         print("SDWAN decommissioning failed")
         print(response.status_code)
@@ -84,12 +72,12 @@ def nfvis_reset():
     print(response.status_code)
     print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
     try:
-        parsed_json = json.loads(response.content)
-        vnf_names = list(find('name', parsed_json))
-        for vnf in vnf_names:
-            print(vnf)
+        data = response.json()
+        for event in data["vmlc:deployments"]["deployment"]:
+            print(event["name"])
     except Exception as e:
         print(repr(e))
+    print()
     vnf = input("What VNF would you like to delete? ")
     response = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf,
                                 verify=False, auth=HTTPBasicAuth(username, password),
@@ -119,115 +107,143 @@ def print_options():
 
 choice = "p"
 while choice != "q":
-    if choice == "1":
-        getcreds()
-        #API call to retrieve system info, then displays it, return to options
-        response = requests.get(url + "/api/operational/platform-detail", verify=False, auth=HTTPBasicAuth(username, password),
-                                headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
-        print(response.status_code)
-        print(url + "/api/operational/platform-detail")
-        try:
-            parsed_json = json.loads(response.content)
-            print(json.dumps(parsed_json, indent = 4,sort_keys=False))
-        except Exception as e:
-            print(repr(e))
-        print_options()
-        choice = input("Option: ")
-    elif choice == "2":
-        getcreds()
-        #API call to list running VNFs, display info, return to options
-        print("Currently Deployed VNF's...")
-        response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
-                                headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
-        print(response.status_code)
-        print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
-        try:
-            parsed_json = json.loads(response.content)
-            vnf_names = list(find('name', parsed_json))
-            for vnf in vnf_names:
-                print(vnf)
-        except Exception as e:
-            print(repr(e))
-        print_options()
-        choice = input("Option: ")
-    elif choice == "3":
-        getcreds()
-        #API call to delete VNF on NFVIS device
-        response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
-                                headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
-        print(response.status_code)
-        print("Currently Deployed VNFs: ")
-        try:
-            parsed_json = json.loads(response.content)
-            vnf_names = list(find('name', parsed_json))
-            for vnf in vnf_names:
-                print(vnf)
-        except Exception as e:
-            print(repr(e))
-        vnf = input("What VNF would you like to delete? ")
-        response1 = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
-                                headers={'content-type': 'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
-        print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf)
-        if response1.status_code != 204:
-            print("VNF deletion failed")
-            print(response1.status_code)
-        else:
-            print("VNF deletion successful")
-            print(response1.status_code)
-        print_options()
-        choice = input("Option: ")
-    elif choice == "4":
-        getcreds()
-        #API call to deploy VNF on NFVIS device
-        vnfdata = input("What is the name of data file for the VNF to be deployed?")
-        contents = open(vnfdata).read()
-        print(contents)
-        response = requests.post(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments",
-                                   verify=False, auth=HTTPBasicAuth(username, password),
-                                   headers={'content-type': 'application/vnd.yang.data+xml',
-                                            'Accept': 'application/vnd.yang.data+xml'}, data=contents)
-        print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/")
-        if response.status_code != 201:
-            print("VNF deployment failed")
+    try:
+        if choice == "1":
+            getcreds()
+            #API call to retrieve system info, then displays it, return to options
+            response = requests.get(url + "/api/operational/platform-detail", verify=False, auth=HTTPBasicAuth(username, password),
+                                    headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
             print(response.status_code)
-            print(response)
-        else:
-            print("VNF deployment successful")
-            print(response.status_code)
-        print_options()
-        choice = input("Option: ")
-    elif choice == "5":
-        #API call to reset demo environment, print demo environment reset
-        vmanage = input("Enter the vManage IP address: ")
-        print("Enter the Username and Password for vManage: ")
-        vmanage_username = input("Username:")
-        vmanage_password = getpass.getpass()
-        sdwan_reset()
-        answer = input("Would you like to decommission another SDWAN router? (y or n)")
-        if answer == ('y'):
+            print(url + "/api/operational/platform-detail")
+            try:
+                parsed_json = json.loads(response.content)
+                print(json.dumps(parsed_json, indent = 4,sort_keys=False))
+            except Exception as e:
+                print(repr(e))
+            print_options()
+            choice = input("Option: ")
+        elif choice == "2":
+            getcreds()
+            #API call to list running VNFs, display info, return to options
+            response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
+                                    headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
+            print("API Response Code: ", response.status_code)
+            print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
+            print()
+            if response.status_code == 401:
+                print("Authentication Failed to Device")
+                sys.exit()
+            else:
+                print("Currently Deployed VNF's: ")
+            try:
+                data = response.json()
+                for event in data["vmlc:deployments"]["deployment"]:
+                    print(event["name"])
+            except Exception as e:
+                if response.status_code == 204:
+                    print("There are no running VNF deployments on device.")
+                else:
+                    print(repr(e))
+            print()
+            print_options()
+            choice = input("Option: ")
+        elif choice == "3":
+            getcreds()
+            #API call to delete VNF on NFVIS device
+            response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
+                                    headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
+            print("API Response Code: ", response.status_code)
+            print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments")
+            print()
+            if response.status_code == 401:
+                print("Authentication Failed to Device")
+                sys.exit()
+            else:
+                print("Currently Deployed VNF's: ")
+            try:
+                data = response.json()
+                for event in data["vmlc:deployments"]["deployment"]:
+                    print(event["name"])
+            except Exception as e:
+                if response.status_code == 204:
+                    print("There are no running VNF deployments on device.")
+                    sys.exit()
+                else:
+                    print(repr(e))
+            print()
+            vnf = input("What VNF would you like to delete? ")
+            response1 = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
+                                    headers={'content-type': 'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
+            print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf)
+            print()
+            if response1.status_code != 204:
+                print("API Response Code: ", response1.status_code)
+                print("VNF deletion failed")
+            else:
+                print("API Response Code: ", response1.status_code)
+                print("VNF deletion successful")
+            print()
+            print_options()
+            choice = input("Option: ")
+        elif choice == "4":
+            getcreds()
+            #API call to deploy VNF on NFVIS device
+            vnfdata = input("What is the name of data file for the VNF to be deployed?")
+            contents = open(vnfdata).read()
+            print(contents)
+            response = requests.post(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments",
+                                       verify=False, auth=HTTPBasicAuth(username, password),
+                                       headers={'content-type': 'application/vnd.yang.data+xml',
+                                                'Accept': 'application/vnd.yang.data+xml'}, data=contents)
+            print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/")
+            if response.status_code != 201:
+                print("VNF deployment failed")
+                print(response.status_code)
+                print(response)
+            else:
+                print("VNF deployment successful")
+                print(response.status_code)
+            print_options()
+            choice = input("Option: ")
+        elif choice == "5":
+            #API call to reset demo environment, print demo environment reset
+            vmanage = input("Enter the vManage IP address: ")
+            print("Enter the Username and Password for vManage: ")
+            vmanage_username = input("Username: ")
+            vmanage_password = getpass.getpass()
             sdwan_reset()
-        else:
-            print("Great. Let's reset NFVIS.")
-        nfvis_reset()
-        answer = input("Would you like to decommission another NFVIS VNF? (y or n)")
-        if answer == ('y'):
+            answer = input("Would you like to decommission another SDWAN router? (y or n)")
+            if answer == ('y'):
+                sdwan_reset()
+            else:
+                print("Great. Let's reset NFVIS.")
             nfvis_reset()
-        else:
-            print("Great. Let's reset Cisco DNA Center.")
-        dnac = input("Enter the Cisco DNA Center IP address: ")
-        print("Enter the Username and Password for Cisco DNA Center: ")
-        dnac_username = input("Username:")
-        dnac_password = getpass.getpass()
-# API CALL TO LIST INVENTORY
-# API CALL TO DELETE ENCS FROM Inventory
-# API CALL TO REDISCOVER ENCS
-        print_options()
-        choice = input("Option: ")
-    elif choice == "c":
-        #Call getcreds function to change System IP and credentials
-        getcreds()
-        print_options()
-        choice = input("Option: ")
-    elif choice == "p":
+            answer = input("Would you like to decommission another NFVIS VNF? (y or n)")
+            if answer == ('y'):
+                nfvis_reset()
+            else:
+                print("Great. Let's reset Cisco DNA Center.")
+            dnac = input("Enter the Cisco DNA Center IP address: ")
+            print("Enter the Username and Password for Cisco DNA Center: ")
+            dnac_username = input("Username:")
+            dnac_password = getpass.getpass()
+    # API CALL TO LIST INVENTORY
+    # API CALL TO DELETE ENCS FROM Inventory
+    # API CALL TO REDISCOVER ENCS
+            print_options()
+            choice = input("Option: ")
+        elif choice == "c":
+            #Call getcreds function to change System IP and credentials
+            getcreds()
+            print_options()
+            choice = input("Option: ")
+        elif choice == "p":
+            print_options()
+            choice = input("Option: ")
+        elif choice != "1" or "2" or "3" or "4" or "5" or "c" or "p" or "q":
+            print("Wrong option was selected")
+            print()
+            sys.exit()
+    except:
         print_options()
         choice = input("Option: ")
