@@ -147,10 +147,10 @@ def print_options():
     print(" '1' List system information")
     print(" '2' List running VNF's from NFVIS")
     print(" '3' Delete VNF from NFVIS")
-    print(" '4' Deploy VNF to NFVIS")
-    print(" '5' Deploy Service Chained VNFs to NFVIS from DNA-C")
-    print(" '6' Reset demo environment")
-    print(" 'c' Change system IP and credentials")
+    print(" '4' Delete Virtual Switch from NFVIS")
+    print(" '5' Deploy VNF to NFVIS")
+    print(" '6' Deploy Service Chained VNFs to NFVIS from DNA-C")
+    print(" '7' Reset demo environment")
     print(" 'p' print options")
     print(" 'q' quit the program")
 
@@ -217,25 +217,61 @@ while choice != "q":
             except Exception as e:
                 if response.status_code == 204:
                     print("There are no running VNF deployments on device.")
+                    print()
                     sys.exit()
                 else:
                     print(repr(e))
             print()
             vnf = input("What VNF would you like to delete? ")
-            response1 = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
+            response = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
                                     headers={'content-type': 'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
             print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf)
             print()
-            if response1.status_code != 204:
-                print("API Response Code: ", response1.status_code)
+            if response.status_code != 204:
+                print("API Response Code: ", response.status_code)
                 print("VNF deletion failed")
             else:
-                print("API Response Code: ", response1.status_code)
+                print("API Response Code: ", response.status_code)
                 print("VNF deletion successful")
             print()
             print_options()
             choice = input("Option: ")
         elif choice == "4":
+            getcreds()
+            #API call to delete virtual switch on NFVIS device
+            response = requests.get(url + "/api/config/networks?deep", verify=False, auth=HTTPBasicAuth(username, password),
+                                    headers={'content-type':'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
+            print("API Response Code: ", response.status_code)
+            print()
+            if response.status_code == 401:
+                print("Authentication Failed to Device")
+                sys.exit()
+            else:
+                print("Currently Deployed Virtual Switches on NFVIS: ")
+            try:
+                data = response.json()
+                print(data)
+                for event in data["network:networks"]["network"]:
+                    print(event["name"])
+            except Exception as e:
+                print(repr(e))
+            print()
+            print("NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated!")
+            vswitch = input("Which Virtual Switch would you like to delete? ")
+            response = requests.delete(url + "/api/config/networks/network/" + vswitch, verify=False, auth=HTTPBasicAuth(username, password),
+                                    headers={'content-type': 'application/vnd.yang.collection+json', 'Accept': 'application/vnd.yang.data+json'})
+            print(url + "/api/config/bridges/bridge/" + vswitch)
+            print()
+            if response.status_code != 204:
+                print("API Response Code: ", response.status_code)
+                print("Virtual Switch deletion failed")
+            else:
+                print("API Response Code: ", response.status_code)
+                print("Virtual Switch deletion successful")
+            print()
+            print_options()
+            choice = input("Option: ")
+        elif choice == "5":
             getcreds()
             #API call to deploy VNF on NFVIS device
             vnfdata = input("What is the name of data file for the VNF to be deployed?")
@@ -255,11 +291,11 @@ while choice != "q":
                 print(response.status_code)
             print_options()
             choice = input("Option: ")
-        elif choice == "5":
+        elif choice == "6":
             #Deploy service chained VNFs from DNA-C
             print_options()
             choice = input("Option: ")
-        elif choice == "6":
+        elif choice == "7":
             #API call to reset demo environment, print demo environment reset
             vmanage = input("Enter the vManage IP address: ")
             print("Enter the Username and Password for vManage: ")
@@ -292,15 +328,10 @@ while choice != "q":
                 print()
             print_options()
             choice = input("Option: ")
-        elif choice == "c":
-            #Call getcreds function to change System IP and credentials
-            getcreds()
-            print_options()
-            choice = input("Option: ")
         elif choice == "p":
             print_options()
             choice = input("Option: ")
-        elif choice != "1" or "2" or "3" or "4" or "5" or "6" or "c" or "p" or "q":
+        elif choice != "1" or "2" or "3" or "4" or "5" or "6" or "7" or "p" or "q":
             print("Wrong option was selected")
             print()
             sys.exit()
