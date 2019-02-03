@@ -1,21 +1,25 @@
 #!/usr/bin/python
 #-*-coding:utf-8-*-
-# This program will perform API calls necessary to demonstrate API capability in
-# Cisco NFVIS. This program will also reset the ENFV DNA Demo environment
-# Order of operations for reset is as follows:
-# API calls to decommission SDWAN routers in vManage
-# API calls to delete VNF's at all sites
-# API calls to delete SDWAN registered images at all sites
-# API call to delete Site200 ENCS from DNA-C inventory
-# API call to rediscover Site200
-# Repackage SDWAN NFVIS tar balls
-# Upload packages tar ball to site
+'''
+Filename: nfvis.py
+Version: Python 3.7.2
+Authors: Aaron Warner (aawarner@cisco.com)
+         Wade Lehrschall (wlehrsch@cisco.com)
+Description:    This program will perform API calls to automate the deployment and deletion of NFVIS VNF's and virtual
+                switches. The program is currently interactive only. The program also has a "demo reset" option which
+                will decommission SDWAN routers in Cisco vManage, delete ENCS from Cisco DNA Center inventory, and
+                delete VNF's and virtual switches from NFVIS.
+'''
+
 
 import sys
 import requests
 import json
 import getpass
+from tabulate import tabulate
 from requests.auth import HTTPBasicAuth
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 
@@ -43,13 +47,15 @@ def sdwan_reset():
         print("Authentication Failed to Device")
         sys.exit()
     else:
+        print("\nGetting list of SDWAN UUID's from vManage: \n")
+        data = response.json()
+        table = list()
+        headers = ["SDWAN UUID"]
+        for event in data["data"]:
+            tr = [event['uuid']]
+            table.append(tr)
+        print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
         print()
-    print("Getting list of SDWAN UUID's from vManage:")
-    print()
-    data = response.json()
-    for event in data["data"]:
-        print(event["uuid"])
-    print()
     uuid = input("Enter the UUID of the SDWAN router you wish to decommission: ")
     print("Deccommissioning SDWAN Router...")
     response = requests.put("https://" + vmanage + "/dataservice/system/device/decommission/" + uuid, verify=False,
@@ -150,12 +156,12 @@ def dnac_reset():
 def print_options():
     print("Select an option from the menu below. \n")
     print(" Options: \n")
-    print(" '1' List system information")
+    print(" '1' List NFVIS system information")
     print(" '2' List running VNF's from NFVIS")
     print(" '3' Delete VNF from NFVIS")
     print(" '4' Delete Virtual Switch from NFVIS")
     print(" '5' Deploy VNF to NFVIS")
-    print(" '6' Deploy Service Chained VNFs")
+    print(" '6' Deploy Service Chained VNFs from NFVIS")
     print(" '7' Reset demo environment")
     print(" 'p' print options")
     print(" 'q' quit the program")
@@ -163,10 +169,9 @@ def print_options():
 def main():
 
     '''
+
     Program Entry Point 
     '''
-
-    requests.packages.urllib3.disable_warnings()
 
     print("#################################")
     print("####Cisco DNA Automation Tool####")
