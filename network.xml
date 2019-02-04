@@ -1,0 +1,4 @@
+<network>
+  <name>service-net</name>
+  <bridge>service-br</bridge>
+</network>
