@@ -160,9 +160,10 @@ def print_options():
     print(" '2' List running VNF's from NFVIS")
     print(" '3' Delete VNF from NFVIS")
     print(" '4' Delete Virtual Switch from NFVIS")
-    print(" '5' Deploy VNF to NFVIS")
-    print(" '6' Deploy Service Chained VNFs from NFVIS")
-    print(" '7' Reset demo environment")
+    print(" '5' Deploy Virtual Switch to NFVIS")
+    print(" '6' Deploy VNF to NFVIS")
+    print(" '7' Deploy Service Chained VNFs to NFVIS from Cisco DNA Center")
+    print(" '8' Reset demo environment")
     print(" 'p' print options")
     print(" 'q' quit the program")
 
@@ -257,7 +258,7 @@ def main():
                 choice = input("Option: ")
             elif choice == "4":
                 nfvis, url, username, password = getcreds()
-                # API call to delete virtual switch on NFVIS device
+                # API call to get running virtual switch on NFVIS device
                 response = requests.get(url + "/api/config/networks?deep", verify=False, auth=HTTPBasicAuth(username, password),
                                         headers={"content-type":"application/vnd.yang.collection+json", "Accept": "application/vnd.yang.data+json"})
                 print("API Response Code: ", response.status_code, "\n")
@@ -275,6 +276,7 @@ def main():
                 print()
                 print("NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated! \n")
                 vswitch = input("Which Virtual Switch would you like to delete? ")
+                # API Call to delete virtual network
                 response = requests.delete(url + "/api/config/networks/network/" + vswitch, verify=False, auth=HTTPBasicAuth(username, password),
                                         headers={"content-type": "application/vnd.yang.collection+json", "Accept": "application/vnd.yang.data+json"})
                 print(url + "/api/config/bridges/bridge/" + vswitch, "\n")
@@ -283,9 +285,73 @@ def main():
                     print("Virtual Switch deletion failed \n")
                 else:
                     print("Virtual Switch deletion successful \n")
+                # API call to get running bridges on NFVIS device
+                response = requests.get(url + "/api/config/bridges?deep", verify=False,
+                                        auth=HTTPBasicAuth(username, password),
+                                        headers={"content-type": "application/vnd.yang.collection+json",
+                                                    "Accept": "application/vnd.yang.data+json"})
+                print("API Response Code: ", response.status_code, "\n")
+                if response.status_code == 401:
+                    print("Authentication Failed to Device")
+                    sys.exit()
+                else:
+                    print("Currently Deployed Virtual Bridges on NFVIS: \n")
+                try:
+                    data = response.json()
+                    for event in data["network:bridges"]["bridge"]:
+                        print(event["name"])
+                except Exception as e:
+                    print(repr(e))
+                print()
+                print("NOTE:  Do not delete the lan-br, wan-br, wan2-br or SRIOV vswitches, these are system generated! \n")
+                bridge = input("Which Virtual Bridge would you like to delete? ")
+                response = requests.delete(url + "/api/config/bridges/bridge/" + bridge, verify=False,
+                                            auth=HTTPBasicAuth(username, password),
+                                            headers={"content-type": "application/vnd.yang.collection+json",
+                                                    "Accept": "application/vnd.yang.data+json"})
+                print(url + "/api/config/bridges/bridge/" + bridge, "\n")
+                print("API Response Code: ", response.status_code, "\n")
+                if response.status_code != 204:
+                    print("Virtual Bridge deletion failed \n")
+                else:
+                    print("Virtual Bridge deletion successful \n")
                 print_options()
                 choice = input("Option: ")
             elif choice == "5":
+                nfvis, url, username, password = getcreds()
+                # API call to deploy bridge and network on NFVIS device
+                bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
+                contents = open(bridgedata).read()
+                print(contents)
+                response = requests.post(url + "/api/config/bridges",
+                                         verify=False, auth=HTTPBasicAuth(username, password),
+                                         headers={"content-type": "application/vnd.yang.data+xml",
+                                                  "Accept": "application/vnd.yang.data+xml"}, data=contents)
+                print(url + "/api/config/bridges/\n")
+
+                print("API Response Code: ", response.status_code, "\n")
+                if response.status_code != 201:
+                    print("Bridge deployment failed\n")
+                else:
+                    print("Bridge deployment successful\n")
+
+                networkdata = input("What is the name of data file for the network to be deployed?\n")
+                contents = open(networkdata).read()
+                print(contents)
+                response = requests.post(url + "/api/config/networks", verify=False,
+                                         auth=HTTPBasicAuth(username, password),
+                                         headers={"content-type": "application/vnd.yang.data+xml", "Accept": "application/vnd.yang.data+xml"},
+                                         data=contents)
+                print(url + "/api/config/networks/\n")
+                print("API Response Code: ", response.status_code, "\n")
+                if response.status_code != 201:
+                    print("Network deployment failed\n")
+                else:
+                    print("Network deployment successful\n")
+
+                print_options()
+                choice = input("Option: ")
+            elif choice == "6":
                 nfvis, url, username, password = getcreds()
                 # API call to deploy VNF on NFVIS device
                 vnfdata = input("What is the name of data file for the VNF to be deployed?\n")
@@ -296,19 +362,18 @@ def main():
                                            headers={"content-type": "application/vnd.yang.data+xml",
                                                     "Accept": "application/vnd.yang.data+xml"}, data=contents)
                 print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/\n")
-                print(response.status_code, "\n")
+                print("API Response Code:", response.status_code, "\n")
                 if response.status_code != 201:
                     print("VNF deployment failed\n")
-                    print(response)
                 else:
                     print("VNF deployment successful\n")
                 print_options()
                 choice = input("Option: ")
-            elif choice == "6":
+            elif choice == "7":
                 # Deploy service chained VNFs
                 print_options()
                 choice = input("Option: ")
-            elif choice == "7":
+            elif choice == "8":
                 # API call to reset demo environment, print demo environment reset
                 sdwan_reset()
                 answer = input("Would you like to decommission another SDWAN router? (y or n) \n")
