@@ -171,7 +171,7 @@ def main():
 
     '''
 
-    Program Entry Point 
+    Program Entry Point
     '''
 
     print("#################################")
@@ -194,8 +194,8 @@ def main():
                 else:
                     print("Platform Details: \n")
                 try:
-                    parsed_json = json.loads(response.content)
-                    print(json.dumps(parsed_json, indent = 4,sort_keys=False))
+                    jsl = json.loads(response.content)
+                    print(tabulate([i for i in jsl['platform_info:platform-detail']['hardware_info'].items()],tablefmt="fancy_grid"))
                 except Exception as e:
                     print(repr(e))
                 print_options()
