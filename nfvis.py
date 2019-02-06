@@ -50,35 +50,16 @@ def sdwan_reset():
         print("\nGetting list of SDWAN UUID's from vManage: \n")
         data = response.json()
         table = []
-        headers = ["SDWAN UUID"," Device Model", "Host Name", "Device IP", "Template"]
+        headers_dict = {"SDWAN UUID":'uuid'," Device Model":'deviceModel', "Host Name":'host-name', "Device IP":'deviceIP', "Template":'template'}
+        headers=[i for i in headers_dict.keys()]
         for event in data["data"]:
             tr=[]
-            try:
-                tr.append(event['uuid'])
-            except:
-                tr.append('N/A')
-                pass
-            try:
-                tr.append(event['deviceModel'])
-            except:
-                tr.append('N/A')
-                pass
-            try:
-                tr.append(event["host-name"])
-            except:
-                tr.append('N/A')
-                pass
-            try:
-                tr.append(event["deviceIP"])
-            except:
-                tr.append('N/A')
-                pass
-            try:
-                tr.append(event["template"])
-            except:
-                tr.append('N/A')
-                pass
-
+            for i in headers:
+                try:
+                    tr.append(event[headers_dict[i]])
+                except:
+                    tr.append('N/A')
+                    pass
             table.append(tr)
         print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
         print()
