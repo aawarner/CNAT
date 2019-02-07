@@ -42,6 +42,21 @@
             <min_active>1</min_active>
             <max_active>1</max_active>
         </scaling>
+        <kpi_data>
+            <kpi>
+                <event_name>VM_ALIVE</event_name>
+                <metric_value>1</metric_value>
+                <metric_cond>GT</metric_cond>
+                <metric_type>UINT32</metric_type>
+                <metric_collector>
+                    <type>ICMPPing</type>
+                    <nicid>0</nicid>
+                    <poll_frequency>3</poll_frequency>
+                    <polling_unit>seconds</polling_unit>
+                    <continuous_alarm>false</continuous_alarm>
+                </metric_collector>
+            </kpi>
+        </kpi_data>
         <rules>
             <admin_rules>
                 <rule>
