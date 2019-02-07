@@ -77,7 +77,6 @@ def sdwan_reset():
     else:
         print("SDWAN decommissioning successful")
         print()
-    return
 
 def nfvis_reset():
     # Delete running VNFs' from NFVIS
@@ -117,7 +116,6 @@ def nfvis_reset():
         print("VNF deletion failed")
     else:
         print("VNF deletion successful")
-    return
 
 def dnac_reset():
     # Gather DNAC IP Address, Username, Password, and delete ENCS from inventory
@@ -156,7 +154,53 @@ def dnac_reset():
         print("Device deletion from inventory successful")
         print("API Response Code: ", response.status_code)
         print()
-    return
+
+def deploy_bridge(nfvis, url, username, password):
+    bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
+    contents = open(bridgedata).read()
+    print(contents)
+    response = requests.post(url + "/api/config/bridges",
+                             verify=False, auth=HTTPBasicAuth(username, password),
+                             headers={"content-type": "application/vnd.yang.data+xml",
+                                      "Accept": "application/vnd.yang.data+xml"}, data=contents)
+    print(url + "/api/config/bridges/\n")
+
+    print("API Response Code: ", response.status_code, "\n")
+    if response.status_code != 201:
+        print("Bridge deployment failed\n")
+    else:
+        print("Bridge deployment successful\n")
+
+def deploy_vnetwork(nfvis, url, username, password):
+    networkdata = input("What is the name of data file for the network to be deployed?\n")
+    contents = open(networkdata).read()
+    print(contents)
+    response = requests.post(url + "/api/config/networks", verify=False,
+                             auth=HTTPBasicAuth(username, password),
+                             headers={"content-type": "application/vnd.yang.data+xml",
+                                      "Accept": "application/vnd.yang.data+xml"},
+                             data=contents)
+    print(url + "/api/config/networks/\n")
+    print("API Response Code: ", response.status_code, "\n")
+    if response.status_code != 201:
+        print("Network deployment failed\n")
+    else:
+        print("Network deployment successful\n")
+
+def deploy_vnf(nfvis, url, username, password):
+    vnfdata = input("What is the name of data file for the VNF to be deployed?\n")
+    contents = open(vnfdata).read()
+    print(contents)
+    response = requests.post(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments",
+                             verify=False, auth=HTTPBasicAuth(username, password),
+                             headers={"content-type": "application/vnd.yang.data+xml",
+                                      "Accept": "application/vnd.yang.data+xml"}, data=contents)
+    print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/\n")
+    print("API Response Code:", response.status_code, "\n")
+    if response.status_code != 201:
+        print("VNF deployment failed\n")
+    else:
+        print("VNF deployment successful\n")
 
 # Menu Options
 def print_options():
@@ -168,7 +212,7 @@ def print_options():
     print(" '4' Delete VNF from NFVIS")
     print(" '5' Deploy Virtual Switch to NFVIS")
     print(" '6' Deploy VNF to NFVIS")
-    print(" '7' Deploy Service Chained VNFs to NFVIS from Cisco DNA Center")
+    print(" '7' Deploy Service Chained VNFs to NFVIS")
     print(" '8' Reset demo environment")
     print(" 'p' print options")
     print(" 'q' quit the program")
@@ -339,36 +383,8 @@ def main():
                 # API call to deploy bridges/networks to NFVIS
 
                 nfvis, url, username, password = getcreds()
-
-                bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
-                contents = open(bridgedata).read()
-                print(contents)
-                response = requests.post(url + "/api/config/bridges",
-                                         verify=False, auth=HTTPBasicAuth(username, password),
-                                         headers={"content-type": "application/vnd.yang.data+xml",
-                                                  "Accept": "application/vnd.yang.data+xml"}, data=contents)
-                print(url + "/api/config/bridges/\n")
-
-                print("API Response Code: ", response.status_code, "\n")
-                if response.status_code != 201:
-                    print("Bridge deployment failed\n")
-                else:
-                    print("Bridge deployment successful\n")
-
-                networkdata = input("What is the name of data file for the network to be deployed?\n")
-                contents = open(networkdata).read()
-                print(contents)
-                response = requests.post(url + "/api/config/networks", verify=False,
-                                         auth=HTTPBasicAuth(username, password),
-                                         headers={"content-type": "application/vnd.yang.data+xml", "Accept": "application/vnd.yang.data+xml"},
-                                         data=contents)
-                print(url + "/api/config/networks/\n")
-                print("API Response Code: ", response.status_code, "\n")
-                if response.status_code != 201:
-                    print("Network deployment failed\n")
-                else:
-                    print("Network deployment successful\n")
-
+                deploy_bridge(nfvis, url, username, password)
+                deploy_vnetwork(nfvis, url, username, password)
                 print_options()
                 choice = input("Option: ")
 
@@ -376,25 +392,32 @@ def main():
                 # API call to deploy VNF to NFVIS
 
                 nfvis, url, username, password = getcreds()
-
-                vnfdata = input("What is the name of data file for the VNF to be deployed?\n")
-                contents = open(vnfdata).read()
-                print(contents)
-                response = requests.post(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments",
-                                           verify=False, auth=HTTPBasicAuth(username, password),
-                                           headers={"content-type": "application/vnd.yang.data+xml",
-                                                    "Accept": "application/vnd.yang.data+xml"}, data=contents)
-                print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/\n")
-                print("API Response Code:", response.status_code, "\n")
-                if response.status_code != 201:
-                    print("VNF deployment failed\n")
-                else:
-                    print("VNF deployment successful\n")
+                deploy_vnf(nfvis, url, username, password)
                 print_options()
                 choice = input("Option: ")
 
             elif choice == "7":
-                # Deploy service chained VNFs from DNAC
+                # API calls to deploy virtual networking and VNF's to NFVIS
+                nfvis, url, username, password = getcreds()
+
+                deploy_bridge(nfvis, url, username, password)
+                answer = input("Would you like to deploy another bridge? (y or n) \n")
+                if answer == ('y'):
+                    deploy_bridge(nfvis, url, username, password)
+                else:
+                    print("Bridge deployment complete. Let's deploy the virtual network. \n")
+                deploy_vnetwork(nfvis, url, username, password)
+                answer = input("Would you like to deploy another virtual network? (y or n) \n")
+                if answer == ('y'):
+                    deploy_vnetwork(nfvis, url, username, password)
+                else:
+                    print("Virtual network deployment complete. Let's deploy the virtual network functions. \n")
+                deploy_vnf(nfvis, url, username, password)
+                answer = input("Would you like to deploy another virtual network function? (y or n) \n")
+                if answer == ('y'):
+                    deploy_vnf(nfvis, url, username, password)
+                else:
+                    print("Virtual network function deployment complete.\n Service chain deployment complete. \n")
                 print_options()
                 choice = input("Option: ")
 
