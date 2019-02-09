@@ -402,20 +402,23 @@ def main():
 
                 deploy_bridge(nfvis, url, username, password)
                 answer = input("Would you like to deploy another bridge? (y or n) \n")
-                if answer == ('y'):
+                while answer == ('y'):
                     deploy_bridge(nfvis, url, username, password)
+                    answer = input("Would you like to deploy another bridge? (y or n) \n")
                 else:
                     print("Bridge deployment complete. Let's deploy the virtual network. \n")
                 deploy_vnetwork(nfvis, url, username, password)
                 answer = input("Would you like to deploy another virtual network? (y or n) \n")
-                if answer == ('y'):
+                while answer == ('y'):
                     deploy_vnetwork(nfvis, url, username, password)
+                    answer = input("Would you like to deploy another virtual network? (y or n) \n")
                 else:
                     print("Virtual network deployment complete. Let's deploy the virtual network functions. \n")
                 deploy_vnf(nfvis, url, username, password)
                 answer = input("Would you like to deploy another virtual network function? (y or n) \n")
-                if answer == ('y'):
+                while answer == ('y'):
                     deploy_vnf(nfvis, url, username, password)
+                    answer = input("Would you like to deploy another virtual network function? (y or n) \n")
                 else:
                     print("Virtual network function deployment complete.\n Service chain deployment complete. \n")
                 print_options()

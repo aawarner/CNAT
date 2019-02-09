@@ -33,10 +33,6 @@
                 <nicid>2</nicid>
                 <network>lan-net</network>
             </interface>
-            <interface>
-                <nicid>3</nicid>
-                <network>management-net</network>
-            </interface>
         </interfaces>
         <scaling>
             <min_active>1</min_active>
