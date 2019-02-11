@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #-*-coding:utf-8-*-
 '''
-Filename: nfvis.py
+Filename: CDAT.py
 Version: Python 3.7.2
 Authors: Aaron Warner (aawarner@cisco.com)
          Wade Lehrschall (wlehrsch@cisco.com)
@@ -86,27 +86,26 @@ def nfvis_reset():
     uri,header=nfvis_urns.get('deployments',url)
     code,response_json=nfvis_calls.get(username,password,uri,header)
     print("API Response Code: %i :\n%s"%(code,uri))
-    if response.status_code == 401:
+    if code == 401:
         print("\nAuthentication Failed to Device")
         sys.exit()
     else:
         print()
     try:
-        data = response_json
-        for i in data["vmlc:deployments"]["deployment"]:
-            print(i["name"])
+        for i in response_json["vmlc:deployments"]["deployment"]:
+            print(i["name"]+'\n')
     except Exception as e:
-        if response.status_code == 204:
+        if code == 204:
             print("There are no running VNF deployments on device.\n")
             return
         else:
             print(repr(e))
     print()
     vnf = input("\nWhat VNF would you like to delete? ")
-    uri,header=nfvis_urns.delete('vnf',url,vnf)
-    code,response_json=nfvis_calls.delete(username,password,uri,header)
+    uri,header=nfvis_urns.delete('vnf',url,vnf=vnf)
+    code,response=nfvis_calls.delete(username,password,uri,header)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
-    if response.status_code != 204:
+    if code != 204:
         print("VNF deletion failed")
     else:
         print("VNF deletion successful")
@@ -268,59 +267,55 @@ def main():
 
             nfvis, url, username, password = getcreds()
 
-            response = requests.get(url + "/api/config/networks?deep", verify=False, auth=HTTPBasicAuth(username, password),
-                                    headers={"content-type":"application/vnd.yang.collection+json", "Accept": "application/vnd.yang.data+json"})
-            print("API Response Code: ", response.status_code, "\n")
-            if response.status_code == 401:
+            uri,header=nfvis_urns.get('networks',url)
+            code,response_json=nfvis_calls.get(username,password,uri,header)
+            print("API Response Code: %i :\n%s"%(code,uri))
+
+            if code == 401:
                 print("Authentication Failed to Device")
                 sys.exit()
             else:
                 print("Currently Deployed Virtual Switches on NFVIS: \n")
             try:
-                data = response.json()
-                for event in data["network:networks"]["network"]:
-                    print(event["name"])
+                [print(i["name"]+'\n') for i in response_json["network:networks"]["network"]]
             except Exception as e:
                 print(repr(e))
             print()
             print("NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated! \n")
             vswitch = input("Which Virtual Switch would you like to delete? ")
-            # API Call to delete virtual network
-            response = requests.delete(url + "/api/config/networks/network/" + vswitch, verify=False, auth=HTTPBasicAuth(username, password),
-                                    headers={"content-type": "application/vnd.yang.collection+json", "Accept": "application/vnd.yang.data+json"})
-            print(url + "/api/config/bridges/bridge/" + vswitch, "\n")
-            print("API Response Code: ", response.status_code, "\n")
-            if response.status_code != 204:
+
+            uri,header=nfvis_urns.delete('vswitch',url,vswitch=vswitch)
+            code,response=nfvis_calls.delete(username,password,uri,header)
+            print("API Response Code: %i :\n%s"%(code,uri))
+
+            if code != 204:
                 print("Virtual Switch deletion failed \n")
             else:
                 print("Virtual Switch deletion successful \n")
             # API call to get running bridges on NFVIS device
-            response = requests.get(url + "/api/config/bridges?deep", verify=False,
-                                    auth=HTTPBasicAuth(username, password),
-                                    headers={"content-type": "application/vnd.yang.collection+json",
-                                                "Accept": "application/vnd.yang.data+json"})
-            print("API Response Code: ", response.status_code, "\n")
-            if response.status_code == 401:
+
+            uri,header=nfvis_urns.get('bridges',url)
+            code,response_json=nfvis_calls.get(username,password,uri,header)
+            print("API Response Code: %i :\n%s"%(code,uri))
+
+            if code == 401:
                 print("Authentication Failed to Device")
                 sys.exit()
             else:
                 print("Currently Deployed Virtual Bridges on NFVIS: \n")
             try:
-                data = response.json()
-                for event in data["network:bridges"]["bridge"]:
-                    print(event["name"])
+                [print(i["name"]+'\n') for i in response_json["network:bridges"]["bridge"]]
             except Exception as e:
                 print(repr(e))
             print()
             print("NOTE:  Do not delete the lan-br, wan-br, wan2-br or SRIOV vswitches, these are system generated! \n")
             bridge = input("Which Virtual Bridge would you like to delete? ")
-            response = requests.delete(url + "/api/config/bridges/bridge/" + bridge, verify=False,
-                                        auth=HTTPBasicAuth(username, password),
-                                        headers={"content-type": "application/vnd.yang.collection+json",
-                                                "Accept": "application/vnd.yang.data+json"})
-            print(url + "/api/config/bridges/bridge/" + bridge, "\n")
-            print("API Response Code: ", response.status_code, "\n")
-            if response.status_code != 204:
+
+            uri,header=nfvis_urns.delete('bridge',url,bridge=bridge)
+            code,response=nfvis_calls.delete(username,password,uri,header)
+            print("API Response Code: %i :\n%s"%(code,uri))
+
+            if code != 204:
                 print("Virtual Bridge deletion failed \n")
             else:
                 print("Virtual Bridge deletion successful \n")
@@ -330,36 +325,7 @@ def main():
         elif choice == "4":
             # API call to display currently running VNF's then enter VNF to delete and API call to delete
 
-            nfvis, url, username, password = getcreds()
-
-            response = requests.get(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments", verify=False, auth=HTTPBasicAuth(username, password),
-                                    headers={"content-type":"application/vnd.yang.collection+json", "Accept": "application/vnd.yang.data+json"})
-            print("API Response Code: ", response.status_code, "\n")
-            print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments\n")
-            if response.status_code == 401:
-                print("Authentication Failed to Device \n")
-                sys.exit()
-            else:
-                print("Currently Deployed VNF's: \n")
-            try:
-                data = response.json()
-                for event in data["vmlc:deployments"]["deployment"]:
-                    print(event["name"])
-            except Exception as e:
-                if response.status_code == 204:
-                    print("There are no running VNF deployments on device.\n")
-                    sys.exit()
-                else:
-                    print(repr(e))
-            vnf = input("What VNF would you like to delete? ")
-            response = requests.delete(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, verify=False, auth=HTTPBasicAuth(username, password),
-                                    headers={"content-type": "application/vnd.yang.collection+json", "Accept": "application/vnd.yang.data+json"})
-            print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/" + vnf, "\n")
-            print("API Response Code: ", response.status_code, "\n")
-            if response.status_code != 204:
-                print("VNF deletion failed\n")
-            else:
-                print("VNF deletion successful\n")
+            nfvis_reset()
             print_options()
             choice = input("Option: ")
 
@@ -410,7 +376,6 @@ def main():
 
         elif choice == "8":
             # API calls to reset demo environment, print demo environment reset
-            sdwan_reset()
             answer = input("Would you like to decommission another SDWAN router? (y or n) \n")
             if answer == ('y'):
                 sdwan_reset()
