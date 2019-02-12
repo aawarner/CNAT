@@ -152,14 +152,11 @@ def deploy_bridge(nfvis, url, username, password):
     bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
     contents = open(bridgedata).read()
     print(contents)
-    response = requests.post(url + "/api/config/bridges",
-                             verify=False, auth=HTTPBasicAuth(username, password),
-                             headers={"content-type": "application/vnd.yang.data+xml",
-                                      "Accept": "application/vnd.yang.data+xml"}, data=contents)
-    print(url + "/api/config/bridges/\n")
+    uri,header=nfvis_urns.post('bridges',url)
+    code,response=nfvis_calls.post(username,password,uri,header,data=contents)
+    print('\n%s \nAPI Status Code: %i\n'%(uri,code))
 
-    print("API Response Code: ", response.status_code, "\n")
-    if response.status_code != 201:
+    if code != 201:
         print("Bridge deployment failed\n")
     else:
         print("Bridge deployment successful\n")
@@ -168,14 +165,10 @@ def deploy_vnetwork(nfvis, url, username, password):
     networkdata = input("What is the name of data file for the network to be deployed?\n")
     contents = open(networkdata).read()
     print(contents)
-    response = requests.post(url + "/api/config/networks", verify=False,
-                             auth=HTTPBasicAuth(username, password),
-                             headers={"content-type": "application/vnd.yang.data+xml",
-                                      "Accept": "application/vnd.yang.data+xml"},
-                             data=contents)
-    print(url + "/api/config/networks/\n")
-    print("API Response Code: ", response.status_code, "\n")
-    if response.status_code != 201:
+    uri,header=nfvis_urns.post('networks',url)
+    code,response=nfvis_calls.post(username,password,uri,header,data=contents)
+    print('\n%s \nAPI Status Code: %i\n'%(uri,code))
+    if code != 201:
         print("Network deployment failed\n")
     else:
         print("Network deployment successful\n")
@@ -184,13 +177,10 @@ def deploy_vnf(nfvis, url, username, password):
     vnfdata = input("What is the name of data file for the VNF to be deployed?\n")
     contents = open(vnfdata).read()
     print(contents)
-    response = requests.post(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments",
-                             verify=False, auth=HTTPBasicAuth(username, password),
-                             headers={"content-type": "application/vnd.yang.data+xml",
-                                      "Accept": "application/vnd.yang.data+xml"}, data=contents)
-    print(url + "/api/config/vm_lifecycle/tenants/tenant/admin/deployments/\n")
-    print("API Response Code:", response.status_code, "\n")
-    if response.status_code != 201:
+    uri,header=nfvis_urns.post('deployments',url)
+    code,response=nfvis_calls.post(username,password,uri,header,data=contents)
+    print('\n%s \nAPI Status Code: %i\n'%(uri,code))
+    if code != 201:
         print("VNF deployment failed\n")
     else:
         print("VNF deployment successful\n")

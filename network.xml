@@ -1,4 +1,4 @@
 <network>
-  <name>service-net</name>
-  <bridge>service-br</bridge>
+  <name>codefest-net</name>
+  <bridge>codefest-br</bridge>
 </network>

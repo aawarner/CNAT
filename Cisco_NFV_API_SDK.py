@@ -45,8 +45,8 @@ class NFVIS_API_Calls:
 
     def post(username,password,uri,header,data):
         '''gets the specified uri and returns: response code, json formatted response. '''
-        response = requests.get(uri, verify=False, auth=HTTPBasicAuth(username,password),headers=header,data=data)
-        return response.status_code, response.json()
+        response = requests.post(uri, verify=False, auth=HTTPBasicAuth(username,password),headers=header,data=data)
+        return response.status_code, response
 
 
 class NFVIS_URNs:
@@ -63,7 +63,7 @@ class NFVIS_URNs:
         rest_get_json_header={"content-type": "application/vnd.yang.collection+json","Accept": "application/vnd.yang.data+json"}
         rest_get_xml_header={}
         return rest_get_uri[self],rest_get_json_header
-    def post(self,url):
+    def post(self,url,data=''):
         '''returns appropriate REST POST uri and header given shorthand key and object to be posted'''
         rest_post_uri={'bridges':"%s/api/config/bridges"%url,
                        'networks':"%s/api/config/networks"%url,
