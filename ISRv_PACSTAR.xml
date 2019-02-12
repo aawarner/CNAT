@@ -8,7 +8,7 @@
         <recovery_policy>
             <action_on_recovery>REBOOT_ONLY</action_on_recovery>
         </recovery_policy>
-	 <flavor>ISRv-small</flavor>
+	 <flavor>Vedge-Standard</flavor>
         <interfaces>
             <interface>
                 <nicid>0</nicid>
