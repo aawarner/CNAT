@@ -36,7 +36,11 @@ class NFVIS_API_Calls:
     def get(username,password,uri,header):
         '''gets the specified uri and returns: response code, json formatted response. '''
         response = requests.get(uri, verify=False, auth=HTTPBasicAuth(username,password),headers=header)
-        return response.status_code, response.json()
+        if response.status_code != 204:
+            response=response.json()
+        else:
+            reponse=json.dumps(['None'])
+        return response.status_code, response
 
     def delete(username,password,uri,header):
         '''gets the specified uri and returns: response code, response. '''
