@@ -40,7 +40,8 @@ class NFVIS_API_Calls:
             code=response.status_code
             response=response.json()
         else:
-            reponse=json.dumps(['None'])
+            reponse=json.dumps('None')
+            code=response.status_code
         return code, response
 
     def delete(username,password,uri,header):
