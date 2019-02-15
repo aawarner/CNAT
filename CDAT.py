@@ -34,6 +34,7 @@ def getcreds():
     password = getpass.getpass()
     return nfvis, url, username, password
 
+
 def sdwan_reset():
     # Collect vManage IP Address, Username, and Password and decommission SDWAN Routers
     vmanage = input("Enter the vManage IP address: \n")
@@ -152,8 +153,8 @@ def deploy_bridge(nfvis, url, username, password):
     bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
     contents = open(bridgedata).read()
     print(contents)
-    uri,header=nfvis_urns.post('bridges',url)
-    code,response=nfvis_calls.post(username,password,uri,header,data=contents)
+    uri,header,post_data=nfvis_urns.post('bridges',url,format='xml')
+    code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
 
     if code != 201:
@@ -165,8 +166,8 @@ def deploy_vnetwork(nfvis, url, username, password):
     networkdata = input("What is the name of data file for the network to be deployed?\n")
     contents = open(networkdata).read()
     print(contents)
-    uri,header=nfvis_urns.post('networks',url)
-    code,response=nfvis_calls.post(username,password,uri,header,data=contents)
+    uri,header,post_data=nfvis_urns.post('networks',url,format='xml')
+    code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
     if code != 201:
         print("Network deployment failed\n")
@@ -177,8 +178,8 @@ def deploy_vnf(nfvis, url, username, password):
     vnfdata = input("What is the name of data file for the VNF to be deployed?\n")
     contents = open(vnfdata).read()
     print(contents)
-    uri,header=nfvis_urns.post('deployments',url)
-    code,response=nfvis_calls.post(username,password,uri,header,data=contents)
+    uri,header,post_data=nfvis_urns.post('deployments',url,format='xml')
+    code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
     if code != 201:
         print("VNF deployment failed\n")
@@ -193,8 +194,8 @@ def print_options():
     print(" '2' List running VNF's from NFVIS")
     print(" '3' Delete Virtual Switch from NFVIS")
     print(" '4' Delete VNF from NFVIS")
-    print(" '5' Deploy Virtual Switch to NFVIS")
-    print(" '6' Deploy VNF to NFVIS")
+    print(" '5' Deploy Virtual Switch to NFVIS from file")
+    print(" '6' Deploy VNF to NFVIS from file")
     print(" '7' Deploy Service Chained VNFs to NFVIS")
     print(" '8' Reset demo environment")
     print(" 'p' print options")
@@ -273,8 +274,7 @@ def main():
             print()
             print("NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated! \n")
             vswitch = input("Which Virtual Switch would you like to delete? ")
-
-            uri,header=nfvis_urns.delete('vswitch',url,vswitch=vswitch)
+            uri,header=nfvis_urns.delete('network',url,network=vswitch)
             code,response=nfvis_calls.delete(username,password,uri,header)
             print("API Response Code: %i :\n%s"%(code,uri))
 
