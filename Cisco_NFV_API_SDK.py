@@ -91,3 +91,44 @@ class NFVIS_URNs:
                         'bridge':'%s/api/config/bridges/bridge/%s'%(url,bridge)}
         rest_delete_header={'json':{"content-type": "application/vnd.yang.collection+json","Accept": "application/vnd.yang.data+json"},'xml':None}
         return rest_delete_uri[self],rest_delete_header[format]
+
+class SDWAN_API_Calls:
+
+    def __init__(self,username=None,password=None,url=None,data=None):
+        self.username=username
+        self.password=password
+        self.url=url
+        self.data=data
+
+    def get(username,password,uri,header):
+        '''gets the specified uri and returns: response code, json formatted response. '''
+        response = requests.get(uri, verify=False, auth=HTTPBasicAuth(username,password),headers=header)
+        if response.status_code != 204:
+            code=response.status_code
+            response=response.json()
+        else:
+            reponse=json.dumps('None')
+            code=response.status_code
+        return code, response
+
+    def put(username,password,uri,header):
+        '''gets the specified uri and returns: response code, response. '''
+        response = requests.put(uri, verify=False, auth=HTTPBasicAuth(username,password),headers=header)
+        return response.status_code, response
+
+class SDWAN_URNs:
+
+    def __init__(self,url):
+        self.url=url
+
+    def get(self,url):
+        '''returns appropriate REST GET uri and header given shorthand key'''
+        rest_get_uri={'vedges':"%s/dataservice/system/device/vedges"%url}
+        rest_get_json_header = {"content-type": "application/json", "Accept": "application/json"}
+        return rest_get_uri[self], rest_get_json_header
+
+    def put(self, url, data=''):
+        '''returns appropriate REST PUT uri and header given shorthand key and object to be posted'''
+        rest_put_uri = {'decommission':"%s/dataservice/system/device/decommission/%s"%(url,data)}
+        rest_put_json_header = {"content-type": "application/json", "Accept": "application/json"}
+        return rest_put_uri[self], rest_put_json_header
