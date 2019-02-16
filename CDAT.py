@@ -14,6 +14,7 @@ Description:    This program will perform API calls to automate the deployment a
 
 from Cisco_NFV_API_SDK import NFVIS_API_Calls as nfvis_calls
 from Cisco_NFV_API_SDK import NFVIS_URNs as nfvis_urns
+from pprint import pprint as pp
 import sys
 import requests
 import json
@@ -24,7 +25,6 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-
 def getcreds():
     # Collects NFVIS IP Address, Username, and Password
     nfvis = input("What is the IP address of the NFVIS system: ")
@@ -33,6 +33,58 @@ def getcreds():
     username = input("Username: ")
     password = getpass.getpass()
     return nfvis, url, username, password
+
+def response_parser(response_json):
+    o=response_json
+    print(60*'#'+'\n\n''Hierarchical Config:\n')
+    try:
+        for i in o.keys():
+            print(i)
+            j=o[i]
+            try:
+                for k in j.keys():
+                    print('\t|\n\t-->%s'%k)
+                    l=o[i][k]
+                    for m in l:
+                        for n in m.keys():
+                            try:
+                                if type(m[n])==type({}):
+                                    for a in (m[n]).keys():
+                                        print('\t\t\t\t|\n\t\t\t\t-->%s'%m[n][a])
+                            except:
+                                pass
+                            try:
+                                if type(m[n])==type(''):
+                                    print('\t\t|\n\t\t-->%s'%m[n])
+                            except:
+                                pass
+                            try:
+                                if type(m[n])==type([]):
+                                    for b in m[n]:
+                                        for c in b.keys():
+                                            print('\t\t\t|\n\t\t\t-->%s'%b[c])
+                            except:
+                                pass
+            except:
+                pass
+    except:
+        pass
+
+
+def cli(args):
+    if len(sys.argv)==5:
+        method,key,name_ip,setting=(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
+    else:
+        method,key,name_ip=(sys.argv[1],sys.argv[2],sys.argv[3])
+    username = input("Username: ")
+    password = getpass.getpass()
+    url='https://%s'%name_ip
+    if method is 'g':
+        uri,header=nfvis_urns.get(key,url)
+        code,response_json=nfvis_calls.get(username,password,uri,header)
+        print("API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"%(code,uri,response_json))
+        response_parser(response_json)
+
 
 
 def sdwan_reset():
@@ -396,4 +448,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        main()
+    else:
+        cli(sys.argv)
