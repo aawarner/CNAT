@@ -14,10 +14,11 @@ Description:    This program will perform API calls to automate the deployment a
 
 from Cisco_NFV_API_SDK import NFVIS_API_Calls as nfvis_calls
 from Cisco_NFV_API_SDK import NFVIS_URNs as nfvis_urns
+from Cisco_NFV_API_SDK import SDWAN_API_Calls as sdwan_calls
+from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
 from pprint import pprint as pp
 import sys
 import requests
-import json
 import getpass
 from tabulate import tabulate
 from requests.auth import HTTPBasicAuth
@@ -33,6 +34,7 @@ def getcreds():
     username = input("Username: ")
     password = getpass.getpass()
     return nfvis, url, username, password
+
 
 def response_parser(response_json):
     o=response_json
@@ -93,50 +95,41 @@ def cli(args):
 
 
 
-def sdwan_reset():
+def sdwan_reset(vmanage, vmanage_username, vmanage_password):
     # Collect vManage IP Address, Username, and Password and decommission SDWAN Routers
-    vmanage = input("Enter the vManage IP address: \n")
-    print("Enter the Username and Password for vManage: \n")
-    vmanage_username = input("Username: ")
-    vmanage_password = getpass.getpass()
-    response = requests.get("https://" + vmanage + "/dataservice/system/device/vedges", verify=False,
-                            auth=HTTPBasicAuth(vmanage_username, vmanage_password),
-                            headers={"content-type": "application/json", "Accept": "application/json"})
-    print("API Response Code: ", response.status_code)
-    print("https://" + vmanage + "/dataservice/system/device/vedges")
-    if response.status_code == 401:
+    url = "https://" + vmanage
+    uri, header = sdwan_urns.get('vedges', url)
+    code, response_json = sdwan_calls.get(vmanage_username, vmanage_password, uri, header)
+    print("API Response Code: %i :\n%s" % (code, uri))
+    if code == 401:
         print("Authentication Failed to Device")
         sys.exit()
     else:
-        print("\nGetting list of SDWAN UUID's from vManage: \n")
-        data = response.json()
+        print("\nGetting list of SDWAN vEdge's from vManage: \n")
         table = []
-        headers_dict = {"SDWAN UUID":'uuid'," Device Model":'deviceModel', "Host Name":'host-name', "Device IP":'deviceIP', "Template":'template'}
-        headers=[i for i in headers_dict.keys()]
-        for event in data["data"]:
-            tr=[]
+        headers_dict = {"SDWAN UUID": 'uuid', " Device Model": 'deviceModel', "Host Name": 'host-name',
+                        "Device IP": 'deviceIP', "Template": 'template'}
+        headers = [i for i in headers_dict.keys()]
+        for event in response_json["data"]:
+            tr = []
             for i in headers:
                 try:
                     tr.append(event[headers_dict[i]])
                 except:
-                    tr.append('N/A')
+                    tr.append("N/A")
                     pass
             table.append(tr)
         print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
         print()
     uuid = input("Enter the UUID of the SDWAN router you wish to decommission: ")
     print("Deccommissioning SDWAN Router...")
-    response = requests.put("https://" + vmanage + "/dataservice/system/device/decommission/" + uuid, verify=False,
-                            auth=HTTPBasicAuth(vmanage_username, vmanage_password),
-                            headers={"content-type": "application/json", "Accept": "application/json"})
-    print("API Response Code: ", response.status_code)
-    print()
+    uri, header = sdwan_urns.put("decommission", url, data=uuid)
+    code, response = sdwan_calls.put(vmanage_username, vmanage_password, uri, header)
+    print('\n%s \nAPI Status Code: %i\n' % (uri, code))
     if response.status_code != 200:
-        print("SDWAN decommissioning failed")
-        print()
+        print("SDWAN decommissioning failed\n")
     else:
-        print("SDWAN decommissioning successful")
-        print()
+        print("SDWAN decommissioning successful\n")
 
 def nfvis_reset():
     # Delete running VNFs' from NFVIS
@@ -147,7 +140,6 @@ def nfvis_reset():
     print("API Response Code: %i :\n%s"%(code,uri))
     if code == 401:
         print("\nAuthentication Failed to Device")
-        sys.exit()
     else:
         print()
     try:
@@ -280,7 +272,6 @@ def main():
             print("API Response Code: %i :\n%s"%(code,uri))
             if code == 401:
                 print("Authentication Failed to Device \n")
-                sys.exit()
             else:
                 print("Platform Details: \n")
             try:
@@ -298,7 +289,6 @@ def main():
             print("API Response Code: %i :\n%s"%(code,uri))
             if code == 401:
                 print("Authentication Failed to Device \n")
-                sys.exit()
             else:
                 print("Currently Deployed VNF's: \n")
             try:
@@ -424,20 +414,26 @@ def main():
 
         elif choice == "8":
             # API calls to reset demo environment, print demo environment reset
+            vmanage = input("Enter the vManage IP address: \n")
+            print("Enter the Username and Password for vManage: \n")
+            vmanage_username = input("Username: ")
+            vmanage_password = getpass.getpass()
+            sdwan_reset(vmanage, vmanage_username, vmanage_password)
             answer = input("Would you like to decommission another SDWAN router? (y or n) \n")
-            if answer == ('y'):
-                sdwan_reset()
+            while answer == ('y'):
+                sdwan_reset(vmanage, vmanage_username, vmanage_password)
+                answer = input("Would you like to decommission another SDWAN router? (y or n) \n")
             else:
                 print("Great. Let's reset NFVIS. \n")
             nfvis_reset()
             answer = input("Would you like to decommission another NFVIS VNF? (y or n) \n")
-            if answer == ('y'):
+            while answer == ('y'):
                 nfvis_reset()
             else:
                 print("Great. Let's reset Cisco DNA Center. \n")
             dnac_reset()
             answer = input("Would you like to delete another device from DNA-C inventory? (y or n) \n")
-            if answer == ('y'):
+            while answer == ('y'):
                 dnac_reset()
             else:
                 print("Great. Demo Environment has been reset. \n")
@@ -448,7 +444,7 @@ def main():
             print_options()
             choice = input("Option: ")
 
-        elif choice != "1" or "2" or "3" or "4" or "5" or "6" or "7" or "p" or "q":
+        elif choice != "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "p" or "q":
             print("Wrong option was selected \n")
             sys.exit()
 
