@@ -92,8 +92,16 @@ def cli(args):
         code,response_json=nfvis_calls.get(username,password,uri,header)
         print("API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"%(code,uri,response_json))
         response_parser(response_json)
-
-
+    if method is 'p':
+        uri,header,post_data=nfvis_urns.post(key,url,format='xml')
+        with open(setting) as f:
+            contents=f.read()
+        code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
+        print("API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"%(code,uri,response))
+    if method is 'd':
+        uri,header=nfvis_urns.delete(key,url,vnf=setting,bridge=setting,network=setting)
+        code,response=nfvis_calls.delete(username,password,uri,header)
+        print('\n%s \nAPI Status Code: %i\n'%(uri,code))
 
 def sdwan_reset(vmanage, vmanage_username, vmanage_password):
     # Collect vManage IP Address, Username, and Password and decommission SDWAN Routers
