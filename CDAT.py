@@ -16,6 +16,7 @@ from Cisco_NFV_API_SDK import NFVIS_API_Calls as nfvis_calls
 from Cisco_NFV_API_SDK import NFVIS_URNs as nfvis_urns
 from Cisco_NFV_API_SDK import SDWAN_API_Calls as sdwan_calls
 from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
+from pprint import pprint as pp
 import sys
 import requests
 import getpass
@@ -23,7 +24,6 @@ from tabulate import tabulate
 from requests.auth import HTTPBasicAuth
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
 
 
 def getcreds():
@@ -34,6 +34,74 @@ def getcreds():
     username = input("Username: ")
     password = getpass.getpass()
     return nfvis, url, username, password
+
+
+def response_parser(response_json):
+    o=response_json
+    print(60*'#'+'\n\n''Hierarchical Config:\n')
+    try:
+        for i in o.keys():
+            print(i)
+            j=o[i]
+            try:
+                for k in j.keys():
+                    print('\t|\n\t-->%s'%k)
+                    l=o[i][k]
+                    for m in l:
+                        if type(m)==type({}):
+                            for n in m.keys():
+                                try:
+                                    if type(m[n])==type({}):
+                                        for a in (m[n]).keys():
+                                            print('\t\t\t\t|\n\t\t\t\t-->%s'%(m[n][a]))
+                                except:
+                                    pass
+                                try:
+                                    if type(m[n])==type(''):
+                                        print('\t\t|\n\t\t-->%s'%m[n])
+                                except:
+                                    pass
+                                try:
+                                    if type(m[n])==type([]):
+                                        for b in m[n]:
+                                            for c in b.keys():
+                                                print('\t\t\t|\n\t\t\t-->%s'%b[c])
+                                except:
+                                    pass
+                        if type(l)==type({}):
+                            print('\t\t|\n\t\t-->%s:%s'%(m,l[m]))
+                        if type(m)==type([]):
+                            for d in m:
+                                print('\t\t|\n\t\t-->%s'%d)
+            except:
+                pass
+    except:
+        pass
+
+
+def cli(args):
+    if len(sys.argv)==5:
+        method,key,name_ip,setting=(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
+    else:
+        method,key,name_ip=(sys.argv[1],sys.argv[2],sys.argv[3])
+    username = input("Username: ")
+    password = getpass.getpass()
+    url='https://%s'%name_ip
+    if method is 'g':
+        uri,header=nfvis_urns.get(key,url)
+        code,response_json=nfvis_calls.get(username,password,uri,header)
+        print("API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"%(code,uri,response_json))
+        response_parser(response_json)
+    if method is 'p':
+        uri,header,post_data=nfvis_urns.post(key,url,format='xml')
+        with open(setting) as f:
+            contents=f.read()
+        code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
+        print("API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"%(code,uri,response))
+    if method is 'd':
+        uri,header=nfvis_urns.delete(key,url,vnf=setting,bridge=setting,network=setting)
+        code,response=nfvis_calls.delete(username,password,uri,header)
+        print('\n%s \nAPI Status Code: %i\n'%(uri,code))
 
 def sdwan_reset(vmanage, vmanage_username, vmanage_password):
     # Collect vManage IP Address, Username, and Password and decommission SDWAN Routers
@@ -390,4 +458,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) == 1:
+        main()
+    else:
+        cli(sys.argv)
