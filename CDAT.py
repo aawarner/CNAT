@@ -48,25 +48,31 @@ def response_parser(response_json):
                     print('\t|\n\t-->%s'%k)
                     l=o[i][k]
                     for m in l:
-                        for n in m.keys():
-                            try:
-                                if type(m[n])==type({}):
-                                    for a in (m[n]).keys():
-                                        print('\t\t\t\t|\n\t\t\t\t-->%s'%m[n][a])
-                            except:
-                                pass
-                            try:
-                                if type(m[n])==type(''):
-                                    print('\t\t|\n\t\t-->%s'%m[n])
-                            except:
-                                pass
-                            try:
-                                if type(m[n])==type([]):
-                                    for b in m[n]:
-                                        for c in b.keys():
-                                            print('\t\t\t|\n\t\t\t-->%s'%b[c])
-                            except:
-                                pass
+                        if type(m)==type({}):
+                            for n in m.keys():
+                                try:
+                                    if type(m[n])==type({}):
+                                        for a in (m[n]).keys():
+                                            print('\t\t\t\t|\n\t\t\t\t-->%s'%(m[n][a]))
+                                except:
+                                    pass
+                                try:
+                                    if type(m[n])==type(''):
+                                        print('\t\t|\n\t\t-->%s'%m[n])
+                                except:
+                                    pass
+                                try:
+                                    if type(m[n])==type([]):
+                                        for b in m[n]:
+                                            for c in b.keys():
+                                                print('\t\t\t|\n\t\t\t-->%s'%b[c])
+                                except:
+                                    pass
+                        if type(l)==type({}):
+                            print('\t\t|\n\t\t-->%s:%s'%(m,l[m]))
+                        if type(m)==type([]):
+                            for d in m:
+                                print('\t\t|\n\t\t-->%s'%d)
             except:
                 pass
     except:
