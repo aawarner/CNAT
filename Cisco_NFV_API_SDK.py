@@ -69,7 +69,8 @@ class NFVIS_URNs:
         rest_get_uri={'deployments':'%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments'%url,
                       'platform-detail':"%s/api/operational/platform-detail"%url,
                       'networks':'%s/api/config/networks?deep'%url,
-                      'bridges':'%s/api/config/bridges?deep'%url}
+                      'bridges':'%s/api/config/bridges?deep'%url,
+                      'images':'%s/api/config/vm_lifecycle/images?deep'%url}
         rest_get_header={'json':{"content-type": "application/vnd.yang.collection+json","Accept": "application/vnd.yang.data+json"},'xml':None}
         return rest_get_uri[self],rest_get_header[format]
     def post(self,url,format='json',vnf=None,bridge=None,network=None):
