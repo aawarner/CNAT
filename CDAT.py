@@ -16,7 +16,7 @@ from Cisco_NFV_API_SDK import NFVIS_API_Calls as nfvis_calls
 from Cisco_NFV_API_SDK import NFVIS_URNs as nfvis_urns
 from Cisco_NFV_API_SDK import SDWAN_API_Calls as sdwan_calls
 from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
-from pprint import pprint as pp
+import xml.etree.ElementTree as ET
 import sys
 import requests
 import getpass
@@ -244,6 +244,72 @@ def deploy_vnf(nfvis, url, username, password):
     else:
         print("VNF deployment successful\n")
 
+def bridgexmlcreate():
+    tree = ET.parse('bridge.xml')
+    root = tree.getroot()
+    for child in root:
+        child.text = input("Enter the name of the bridge to be deployed.")
+    tree.write("bridge.xml")
+
+def networkxmlcreate():
+
+    tree = ET.parse('network.xml')
+    root = tree.getroot()
+
+    for child in root:
+        if child.tag == str('name'):
+            child.text = input("Enter the name of the network to be deployed.\n")
+            tree.write("network.xml")
+        if child.tag == str('bridge'):
+            child.text = input("Enter the name of the bridge to be associated with the network.\n"
+                               "This should be the bridge that was previously created.\n")
+            tree.write("network.xml")
+
+def vnfxmlcreate():
+    tree = ET.parse('vnf.xml')
+    root = tree.getroot()
+
+    for child in root.findall("./name"):
+        child.text = input("Enter a name for the deployment")
+        tree.write("vnf.xml")
+
+    for child in root.findall("./vm_group/name"):
+        child.text = input("Enter a name for the VNF")
+        tree.write("vnf.xml")
+
+    # Put API Call to list images here
+
+    for child in root.iter('image'):
+        child.text = input("Enter the name of the image to be deployed.\nImage must exist on the system.")
+        tree.write("vnf.xml")
+
+    # Put API call to list flavors here
+    for child in root.iter('flavor'):
+        child.text = input("Enter the VNF flavor\nFlavor must exist on the system")
+        tree.write("vnf.xml")
+
+    for child in root.findall("./vm_group/interfaces/interface/[network='template-1-net']/"):
+        if child.tag == str('network'):
+            child.text = input("Enter the name of the network to be deployed")
+            tree.write("vnf.xml")
+        else:
+            continue
+
+    for child in root.findall("./vm_group/interfaces/interface/port_forwarding/port/"):
+        if child.tag == str('vnf_port'):
+            child.text = input('Enter the VNF port to forward. Usually port 22.')
+            tree.write('vnf.xml')
+
+    for child in root.findall("./vm_group/interfaces/interface/port_forwarding/port/external_port_range/"):
+        if child.tag == str('start'):
+            child.text = input('Enter the first port in the range for external port forwarding.')
+            tree.write('vnf.xml')
+        elif child.tag == str('end'):
+            child.text = input('Enter the last port in the range for external port forwarding.')
+            tree.write('vnf.xml')
+        else:
+            continue
+
 # Menu Options
 def print_options():
     print("Select an option from the menu below. \n")
@@ -455,7 +521,6 @@ def main():
         elif choice != "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "p" or "q":
             print("Wrong option was selected \n")
             sys.exit()
-
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
