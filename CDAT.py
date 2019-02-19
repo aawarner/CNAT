@@ -16,6 +16,8 @@ from Cisco_NFV_API_SDK import NFVIS_API_Calls as nfvis_calls
 from Cisco_NFV_API_SDK import NFVIS_URNs as nfvis_urns
 from Cisco_NFV_API_SDK import SDWAN_API_Calls as sdwan_calls
 from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
+from Cisco_NFV_API_SDK import DNAC_API_Calls as dnac_calls 
+from Cisco_NFV_API_SDK import DNAC_URNs as dnac_urns
 from pprint import pprint as pp
 import sys
 import requests
@@ -28,13 +30,31 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def getcreds():
     # Collects NFVIS IP Address, Username, and Password
-    nfvis = input("What is the IP address of the NFVIS system: ")
+    nfvis = input("What is the IP address of the NFVIS system: \n")
     url = "https://" + nfvis
     print("Enter your username and password. ")
     username = input("Username: ")
     password = getpass.getpass()
     return nfvis, url, username, password
 
+def getdnactoken():
+    # Basic Authenication and retrieval of DNA-C session token 
+    dnac = input("Enter the Cisco DNA Center IP address: \n")
+    url = "https://" + dnac
+    print("Enter the Username and Password for Cisco DNA Center: \n")
+    dnac_username = input("Username: ")
+    dnac_password = getpass.getpass()
+    headers = {"content-type" : "application/json"}
+    response = requests.post("https://" + dnac + "/dna/system/api/v1/auth/token", verify=False,
+                            auth=HTTPBasicAuth(dnac_username, dnac_password),
+                            headers=headers)
+    print("API Response Code: ", response.status_code)
+    if response.status_code == 401:
+        print("Authentication Failed to Device")
+        sys.exit()
+    else:
+        token = response.json()["Token"]
+    return dnac, url, dnac_username, dnac_password, token
 
 def response_parser(response_json):
     o=response_json
@@ -171,41 +191,33 @@ def nfvis_reset():
 
 def dnac_reset():
     # Gather DNAC IP Address, Username, Password, and delete ENCS from inventory
-    dnac = input("Enter the Cisco DNA Center IP address: \n")
-    print("Enter the Username and Password for Cisco DNA Center: \n")
-    dnac_username = input("Username: ")
-    dnac_password = getpass.getpass()
-    headers = {"content-type" : "application/json"}
-    payload = {"isForceDelete" : "true"}
-    response = requests.post("https://" + dnac + "/dna/system/api/v1/auth/token", verify=False,
-                            auth=HTTPBasicAuth(dnac_username, dnac_password),
-                            headers=headers)
-    print("API Response Code: ", response.status_code)
-    if response.status_code == 401:
-        print("Authentication Failed to Device")
-        sys.exit()
-    else:
-        token = response.json()["Token"]
-    headers["x-auth-token"] = token
-    response = requests.get("https://" + dnac + "/dna/intent/api/v1/network-device", headers=headers, verify=False)
-    print()
-    print("Getting list of Network Devices in inventory from DNA-C")
-    print()
-    data = response.json()
-    for event in data["response"]:
-        print("Hostname: ", event["hostname"], "with Device ID: ", event["id"])
+    dnac, url, dnac_username, dnac_password, token = getdnactoken()
+    uri, header=dnac_urns.get('network-devices', url, token=token)
+    code, response_json=dnac_calls.get(uri, header)
+    print("API Response Code: %i :\n%s"%(code,uri))
+    print("\nGetting list of Network Devices in inventory from DNA-C\n")
+    table = []
+    headers_dict = {"Device Hostname": 'hostname', "Device ID": 'id'}
+    headers = [i for i in headers_dict.keys()]
+    for event in response_json["response"]:
+        tr = []
+        for i in headers:
+            try:
+                tr.append(event[headers_dict[i]])
+            except:
+                tr.append("N/A")
+                pass
+        table.append(tr)
+    print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
     print()
     device_id = input("Enter the Device ID of the device you wish to delete: ")
-
-    response = requests.delete("https://" + dnac + "/dna/intent/api/v1/network-device/" + device_id, params=payload, headers=headers, verify=False)
+    uri, header, payload=dnac_urns.delete('device', url, device_id=device_id, token=token)
+    code, response=dnac_calls.delete(uri, header, payload)
+    print('\n%s \nAPI Status Code: %i\n' % (uri, code))
     if response.status_code != 202:
-        print("Device deletion from inventory failed")
-        print("API Response Code: ", response.status_code)
-        print()
+        print("Device deletion from inventory failed\n")
     else:
-        print("Device deletion from inventory successful")
-        print("API Response Code: ", response.status_code)
-        print()
+        print("Device deletion from inventory successful\n")
 
 def deploy_bridge(nfvis, url, username, password):
     bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
@@ -434,15 +446,17 @@ def main():
             else:
                 print("Great. Let's reset NFVIS. \n")
             nfvis_reset()
-            answer = input("Would you like to decommission another NFVIS VNF? (y or n) \n")
+            answer = input("Would you like to delete another NFVIS VNF? (y or n) \n")
             while answer == ('y'):
                 nfvis_reset()
+                answer = input("Would you like to delete another NFVIS VNF? (y or n) \n")
             else:
                 print("Great. Let's reset Cisco DNA Center. \n")
             dnac_reset()
             answer = input("Would you like to delete another device from DNA-C inventory? (y or n) \n")
             while answer == ('y'):
                 dnac_reset()
+                answer = input("Would you like to delete another device from DNA-C inventory? (y or n) \n")
             else:
                 print("Great. Demo Environment has been reset. \n")
             print_options()
