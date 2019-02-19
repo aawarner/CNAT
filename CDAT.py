@@ -162,17 +162,15 @@ def sdwan_reset(vmanage, vmanage_username, vmanage_password):
 def nfvis_reset():
     # Delete running VNFs' from NFVIS
     nfvis, url, username, password = getcreds()
-    print("Currently Deployed VNF's...")
     uri,header=nfvis_urns.get('deployments',url)
     code,response_json=nfvis_calls.get(username,password,uri,header)
     print("API Response Code: %i :\n%s"%(code,uri))
     if code == 401:
         print("\nAuthentication Failed to Device")
     else:
-        print()
+        print("\nCurrently Deployed VNF's...\n")
     try:
-        for i in response_json["vmlc:deployments"]["deployment"]:
-            print(i["name"]+'\n')
+        print(tabulate([i for i in response_json['vmlc:deployments']['deployment']],tablefmt="fancy_grid")+'\n')
     except Exception as e:
         if code == 204:
             print("There are no running VNF deployments on device.\n")
@@ -310,9 +308,10 @@ def main():
             if code == 401:
                 print("Authentication Failed to Device \n")
             else:
-                print("Currently Deployed VNF's: \n")
+                print("\nCurrently Deployed VNF's: \n")
             try:
-                [print(i["name"]+'\n') for i in response_json["vmlc:deployments"]["deployment"]]
+                print(tabulate([i for i in response_json['vmlc:deployments']['deployment']],tablefmt="fancy_grid")+'\n')
+#               [print(i["name"]+'\n') for i in response_json["vmlc:deployments"]["deployment"]]
             except Exception as e:
                 if code == 204:
                     print("There are no running VNF deployments on device. \n")
