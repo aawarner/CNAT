@@ -132,3 +132,45 @@ class SDWAN_URNs:
         rest_put_uri = {'decommission':"%s/dataservice/system/device/decommission/%s"%(url,data)}
         rest_put_json_header = {"content-type": "application/json", "Accept": "application/json"}
         return rest_put_uri[self], rest_put_json_header
+
+class DNAC_API_Calls:
+
+    def __init__(self,username=None,password=None,url=None,data=None):
+        self.username=username
+        self.password=password
+        self.url=url
+        self.data=data
+        
+    def get(uri,header):
+        '''gets the specified uri and returns: response code, json formatted response. '''
+        response = requests.get(uri, verify=False, headers=header)
+        if response.status_code != 204:
+            code=response.status_code
+            response=response.json()
+        else:
+            response=json.dumps('None')
+            code=response.status_code
+        return code, response
+
+    def delete(uri,header,payload):
+        '''gets the specified uri and returns: response code, response. '''
+        response = requests.delete(uri, verify=False, headers=header, params=payload)
+        return response.status_code, response
+
+class DNAC_URNs:
+
+    def __init__(self,url):
+        self.url=url
+
+    def get(self, url, token=''):
+        '''returns appropriate REST GET uri and header given shorthand key'''
+        rest_get_uri={'network-devices':"%s/dna/intent/api/v1/network-device"%url}
+        rest_get_json_header={"content-type" : "application/json","x-auth-token" : "%s"%token}
+        return rest_get_uri[self], rest_get_json_header
+
+    def delete(self, url, device_id='', token=''):
+        '''returns appropriate REST GET uri and header given shorthand key'''
+        rest_delete_uri = {'device': "%s/dna/intent/api/v1/network-device/%s" %(url,device_id)}
+        rest_delete_json_header = {"content-type": "application/json", "x-auth-token": "%s" % token}
+        reset_delete_payload = {"isForceDelete" : "true"}
+        return rest_delete_uri[self], rest_delete_json_header, reset_delete_payload
