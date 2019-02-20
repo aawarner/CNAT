@@ -34,8 +34,11 @@ usage: CDAT.py [p] deployments {ip-address} ASAv.xml
 Interactive Mode
 
 ```
+CDAT.py 
 
-CDAT.py
+#################################
+####Cisco DNA Automation Tool####
+################################# 
 
 Select an option from the menu below. 
 
@@ -52,7 +55,49 @@ Select an option from the menu below.
  'p' print options
  'q' quit the program
 
-Option: 
+Option: 1
+What is the IP address of the NFVIS system: 
+10.10.10.10
+Enter your username and password. 
+Username: admin
+Password: 
+API Response Code: 200 :
+https://10.10.10.10/api/operational/platform-detail
+Platform Details: 
+
+╒════════════════════╤════════════════════════════════════════════════╕
+│ Manufacturer       │ Cisco Systems, Inc.                            │
+├────────────────────┼────────────────────────────────────────────────┤
+│ PID                │ ENCS5412/K9                                    │
+├────────────────────┼────────────────────────────────────────────────┤
+│ SN                 │ FGL211310QJ                                    │
+├────────────────────┼────────────────────────────────────────────────┤
+│ hardware-version   │ M3                                             │
+├────────────────────┼────────────────────────────────────────────────┤
+│ UUID               │ 70DB98C0-1B64-0000-FE49-E01BEBC65375           │
+├────────────────────┼────────────────────────────────────────────────┤
+│ Version            │ 3.10.2-FC3                                     │
+├────────────────────┼────────────────────────────────────────────────┤
+│ Compile_Time       │ Friday, January 25, 2019 [15:25:34 PST]        │
+├────────────────────┼────────────────────────────────────────────────┤
+│ CPU_Information    │ Intel(R) Xeon(R) CPU D-1557 @ 1.50GHz 12 cores │
+├────────────────────┼────────────────────────────────────────────────┤
+│ Memory_Information │ 65768572 kB                                    │
+├────────────────────┼────────────────────────────────────────────────┤
+│ Disk_Size          │ 64.0 GB                                        │
+├────────────────────┼────────────────────────────────────────────────┤
+│ CIMC_IP            │ NA                                             │
+├────────────────────┼────────────────────────────────────────────────┤
+│ Entity-Name        │ ENCS                                           │
+├────────────────────┼────────────────────────────────────────────────┤
+│ Entity-Desc        │ Enterprise Network Compute System              │
+├────────────────────┼────────────────────────────────────────────────┤
+│ BIOS-Version       │ ENCS54_2.6.071220181123                        │
+├────────────────────┼────────────────────────────────────────────────┤
+│ CIMC-Version       │ NA                                             │
+╘════════════════════╧════════════════════════════════════════════════╛
+
+ 
 ```
 
 
@@ -140,9 +185,31 @@ vmlc:deployments
 ```
 POST:
 ```
-CDAT.py p deployments 172.16.82.123 ASAv.xml
+CDAT.py p deployments 172.16.82.123 ASAv_ENCS.xml 
+Username: admin
+Password: 
+API Response Code: 201 :
+
+Request URI: https://172.16.82.123/api/config/vm_lifecycle/tenants/tenant/admin/deployments
+
+JSON Reponse:
+
+<Response [201]>
+
+
+VNF deployment successful
+
 ```
 DELETE:
 ```
-CDAT.py d deployments 172.16.82.123 ASAv.xml
+CDAT.py d deployments 172.16.82.123 ASAv
+Username: admin
+Password: 
+
+https://172.16.82.123/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/ASAv 
+API Status Code: 204
+
+VNF deletion successful
+
+
 ```
