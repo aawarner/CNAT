@@ -18,6 +18,7 @@ from Cisco_NFV_API_SDK import SDWAN_API_Calls as sdwan_calls
 from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
 from Cisco_NFV_API_SDK import DNAC_API_Calls as dnac_calls 
 from Cisco_NFV_API_SDK import DNAC_URNs as dnac_urns
+import xml.etree.ElementTree as ET
 from pprint import pprint as pp
 import sys
 import requests
@@ -218,8 +219,12 @@ def dnac_reset():
         print("Device deletion from inventory successful\n")
 
 def deploy_bridge(nfvis, url, username, password):
-    bridgedata = input("What is the name of data file for the bridge to be deployed?\n")
-    contents = open(bridgedata).read()
+    tree = ET.parse('bridge.xml')
+    root = tree.getroot()
+    for child in root:
+        child.text = input("Enter the name of the bridge to be deployed: ")
+    tree.write("bridge.xml")
+    contents = open("bridge.xml").read()
     print(contents)
     uri,header,post_data=nfvis_urns.post('bridges',url,format='xml')
     code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
@@ -231,9 +236,18 @@ def deploy_bridge(nfvis, url, username, password):
         print("Bridge deployment successful\n")
 
 def deploy_vnetwork(nfvis, url, username, password):
-    networkdata = input("What is the name of data file for the network to be deployed?\n")
-    contents = open(networkdata).read()
-    print(contents)
+    tree = ET.parse('network.xml')
+    root = tree.getroot()
+    for child in root:
+        if child.tag == str('name'):
+            child.text = input("Enter the name of the network to be deployed: ")
+            tree.write("network.xml")
+        if child.tag == str('bridge'):
+            child.text = input("Enter the name of the bridge to be associated with the network.\n"
+                               "This should be the bridge that was previously created: ")
+            tree.write("network.xml")
+            contents = open("network.xml").read()
+            print(contents)
     uri,header,post_data=nfvis_urns.post('networks',url,format='xml')
     code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
@@ -243,9 +257,111 @@ def deploy_vnetwork(nfvis, url, username, password):
         print("Network deployment successful\n")
 
 def deploy_vnf(nfvis, url, username, password):
-    vnfdata = input("What is the name of data file for the VNF to be deployed?\n")
-    contents = open(vnfdata).read()
-    print(contents)
+    tree = ET.parse('vnf.xml')
+    root = tree.getroot()
+    for child in root.findall("./name"):
+        child.text = input("Enter a name for the deployment: ")
+        tree.write("vnf.xml")
+
+    for child in root.findall("./vm_group/name"):
+        child.text = input("Enter a name for the VNF: ")
+        tree.write("vnf.xml")
+
+    uri, header = nfvis_urns.get('images', url)
+    code, response_json = nfvis_calls.get(username, password, uri, header)
+    print("API Response Code: %i :\n%s" % (code, uri))
+    if code == 401:
+        print("\nAuthentication Failed to Device")
+    else:
+        print()
+    try:
+        for i in response_json["vmlc:images"]["image"]:
+            print(i["name"] + '\n')
+    except Exception as e:
+        if code == 204:
+            print("There are no images on this device.\n")
+            return
+        else:
+            print(repr(e))
+
+    for child in root.iter('image'):
+        child.text = input("Enter the name of the image to be deployed.\nImage must exist on the system: ")
+        tree.write("vnf.xml")
+
+    uri, header = nfvis_urns.get('flavors', url)
+    code, response_json = nfvis_calls.get(username, password, uri, header)
+    print("API Response Code: %i :\n%s" % (code, uri))
+    if code == 401:
+        print("\nAuthentication Failed to Device")
+    else:
+        print()
+    try:
+        for i in response_json["vmlc:flavors"]["flavor"]:
+            print(i["name"] + '\n')
+    except Exception as e:
+        if code == 204:
+            print("There are no flavors on this device.\n")
+            return
+        else:
+            print(repr(e))
+
+    for child in root.iter('flavor'):
+        child.text = input("Enter the VNF flavor\nFlavor must exist on the system: ")
+        tree.write("vnf.xml")
+
+    uri, header = nfvis_urns.get('networks', url)
+    code, response_json = nfvis_calls.get(username, password, uri, header)
+    print("API Response Code: %i :\n%s" % (code, uri))
+
+    if code == 401:
+        print("Authentication Failed to Device")
+        sys.exit()
+    else:
+        print("Currently Deployed Virtual Switches on NFVIS: \n")
+    try:
+        [print(i["name"] + '\n') for i in response_json["network:networks"]["network"]]
+    except Exception as e:
+        print(repr(e))
+
+    for child in root.findall("./vm_group/interfaces/interface/network[@id='1']"):
+        if child.tag == str('network'):
+            child.text = input("Enter the name of the network to connect to nicid 1: ")
+            tree.write("vnf.xml")
+        else:
+            continue
+
+    for child in root.findall("./vm_group/interfaces/interface/network[@id='2']"):
+        if child.tag == str('network'):
+            child.text = input("Enter the name of the network to connect to nicid 2: ")
+            tree.write("vnf.xml")
+        else:
+            continue
+
+    for child in root.findall("./vm_group/interfaces/interface/network[@id='3']"):
+        if child.tag == str('network'):
+            child.text = input("Enter the name of the network to connect to nicid 3: ")
+            tree.write("vnf.xml")
+        else:
+            continue
+
+    for child in root.findall("./vm_group/interfaces/interface/port_forwarding/port/"):
+        if child.tag == str('vnf_port'):
+            child.text = input('Enter the VNF port to forward. Usually port 22: ')
+            tree.write('vnf.xml')
+
+    for child in root.findall("./vm_group/interfaces/interface/port_forwarding/port/external_port_range/"):
+        if child.tag == str('start'):
+            child.text = input('Enter the first port in the range for external port forwarding: ')
+            tree.write('vnf.xml')
+        elif child.tag == str('end'):
+            child.text = input('Enter the last port in the range for external port forwarding: ')
+            tree.write('vnf.xml')
+        else:
+            continue
+
+    contents = open("vnf.xml").read()
+    print(contents, "\n")
+
     uri,header,post_data=nfvis_urns.post('deployments',url,format='xml')
     code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
@@ -267,7 +383,7 @@ def print_options():
     print(" '7' Deploy Service Chained VNFs to NFVIS")
     print(" '8' Reset demo environment")
     print(" 'p' print options")
-    print(" 'q' quit the program")
+    print(" 'q' quit the program\n")
 
 def main():
 
@@ -408,24 +524,24 @@ def main():
             nfvis, url, username, password = getcreds()
 
             deploy_bridge(nfvis, url, username, password)
-            answer = input("Would you like to deploy another bridge? (y or n) \n")
+            answer = input("Would you like to deploy another bridge? (y or n) ")
             while answer == ('y'):
                 deploy_bridge(nfvis, url, username, password)
-                answer = input("Would you like to deploy another bridge? (y or n) \n")
+                answer = input("Would you like to deploy another bridge? (y or n) ")
             else:
-                print("Bridge deployment complete. Let's deploy the virtual network. \n")
+                print("Bridge deployment complete. Let's deploy the virtual network. ")
             deploy_vnetwork(nfvis, url, username, password)
-            answer = input("Would you like to deploy another virtual network? (y or n) \n")
+            answer = input("Would you like to deploy another virtual network? (y or n) ")
             while answer == ('y'):
                 deploy_vnetwork(nfvis, url, username, password)
-                answer = input("Would you like to deploy another virtual network? (y or n) \n")
+                answer = input("Would you like to deploy another virtual network? (y or n) ")
             else:
                 print("Virtual network deployment complete. Let's deploy the virtual network functions. \n")
             deploy_vnf(nfvis, url, username, password)
-            answer = input("Would you like to deploy another virtual network function? (y or n) \n")
+            answer = input("Would you like to deploy another virtual network function? (y or n) ")
             while answer == ('y'):
                 deploy_vnf(nfvis, url, username, password)
-                answer = input("Would you like to deploy another virtual network function? (y or n) \n")
+                answer = input("Would you like to deploy another virtual network function? (y or n) ")
             else:
                 print("Virtual network function deployment complete.\n Service chain deployment complete. \n")
             print_options()
@@ -468,7 +584,6 @@ def main():
         elif choice != "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "p" or "q":
             print("Wrong option was selected \n")
             sys.exit()
-
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
