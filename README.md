@@ -114,37 +114,31 @@ network:networks
 
 ```
 
-```CDAT.py g flavors 172.16.82.123
+```
+python3 CDAT.py g deployments 172.16.82.123
 Username: admin
 Password: 
 API Response Code: 200 :
 
-Request URI: https://172.16.82.123/api/config/vm_lifecycle/flavors
+Request URI: https://172.16.82.123/api/config/vm_lifecycle/tenants/tenant/admin/deployments
 
 JSON Reponse:
 
-{'vmlc:flavors': {'flavor': [{'name': 'ASAv10'}, {'name': 'ASAv30'}, {'name': 'ASAv5'}, {'name': 'ISRv-medium'}, {'name': 'ISRv-mini'}, {'name': 'ISRv-small'}]}}
+{'vmlc:deployments': {'deployment': [{'name': 'FIREWALL'}, {'name': 'ROUTER'}]}}
 
 
 ############################################################
 
 Hierarchical Config:
 
-vmlc:flavors
+vmlc:deployments
         |
-        -->flavor
+        -->deployment
                 |
-                -->ASAv10
+                -->FIREWALL
                 |
-                -->ASAv30
-                |
-                -->ASAv5
-                |
-                -->ISRv-medium
-                |
-                -->ISRv-mini
-                |
-                -->ISRv-small
+                -->ROUTER
+
 ```
 POST:
 ```
