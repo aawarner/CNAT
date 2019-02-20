@@ -312,21 +312,21 @@ def deploy_vnf(nfvis, url, username, password):
     except Exception as e:
         print(repr(e))
 
-    for child in root.findall("./vm_group/interfaces/interface/[network='template-1-net']/"):
+    for child in root.findall("./vm_group/interfaces/interface/network[@id='1']"):
         if child.tag == str('network'):
             child.text = input("Enter the name of the network to connect to nicid 1: ")
             tree.write("vnf.xml")
         else:
             continue
 
-    for child in root.findall("./vm_group/interfaces/interface/[network='template-2-net']/"):
+    for child in root.findall("./vm_group/interfaces/interface/network[@id='2']"):
         if child.tag == str('network'):
             child.text = input("Enter the name of the network to connect to nicid 2: ")
             tree.write("vnf.xml")
         else:
             continue
 
-    for child in root.findall("./vm_group/interfaces/interface/[network='template-3-net']/"):
+    for child in root.findall("./vm_group/interfaces/interface/network[@id='3']"):
         if child.tag == str('network'):
             child.text = input("Enter the name of the network to connect to nicid 3: ")
             tree.write("vnf.xml")
@@ -359,13 +359,6 @@ def deploy_vnf(nfvis, url, username, password):
     else:
         print("VNF deployment successful\n")
 
-    # Network XML Template reset
-
-    for child in root.findall("./vm_group/interfaces/interface/[network='template-1-net']/"):
-        if child.tag == str('network'):
-            child.text = input("Enter the name of the network to connect to nicid 1: ")
-            tree.write("vnf.xml")
-
 # Menu Options
 def print_options():
     print("Select an option from the menu below. \n")
@@ -379,7 +372,7 @@ def print_options():
     print(" '7' Deploy Service Chained VNFs to NFVIS")
     print(" '8' Reset demo environment")
     print(" 'p' print options")
-    print(" 'q' quit the program")
+    print(" 'q' quit the program\n")
 
 def main():
 
