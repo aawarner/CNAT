@@ -88,7 +88,7 @@ class NFVIS_URNs:
         return rest_post_uri[self],rest_post_header[format],rest_post_json_data[self]
     def delete(self,url,format='json',vnf='',bridge='',network=''):
         '''returns appropriate REST DELETE uri and header given shorthand key and object to be deleted'''
-        rest_delete_uri={'vnf':"%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/%s"%(url,vnf),
+        rest_delete_uri={'deployments':"%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/%s"%(url,vnf),
                         'network':'%s/api/config/networks/network/%s'%(url,network),
                         'bridge':'%s/api/config/bridges/bridge/%s'%(url,bridge)}
         rest_delete_header={'json':{"content-type": "application/vnd.yang.collection+json","Accept": "application/vnd.yang.data+json"},'xml':None}
