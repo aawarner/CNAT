@@ -118,10 +118,18 @@ def cli(args):
             contents=f.read()
         code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
         print("API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"%(code,uri,response))
+        if code == 201:
+            print('VNF deployment successful')
+        else:
+            print('VNF deployment failed')
     if method is 'd':
         uri,header=nfvis_urns.delete(key,url,vnf=setting,bridge=setting,network=setting)
         code,response=nfvis_calls.delete(username,password,uri,header)
         print('\n%s \nAPI Status Code: %i\n'%(uri,code))
+        if code == 204:
+            print('VNF deletion successful')
+        else:
+            print('VNF deletion failed')
 
 def sdwan_reset(vmanage, vmanage_username, vmanage_password):
     # Collect vManage IP Address, Username, and Password and decommission SDWAN Routers
@@ -179,7 +187,7 @@ def nfvis_reset():
             print(repr(e))
     print()
     vnf = input("\nWhat VNF would you like to delete? ")
-    uri,header=nfvis_urns.delete('vnf',url,vnf=vnf)
+    uri,header=nfvis_urns.delete('deployments',url,vnf=vnf)
     code,response=nfvis_calls.delete(username,password,uri,header)
     print('\n%s \nAPI Status Code: %i\n'%(uri,code))
     if code != 204:
