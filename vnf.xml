@@ -26,16 +26,16 @@
                 </port_forwarding>
             </interface>
             <interface>
-                <nicid>1</nicid>
-                <network>wan-net</network>
+		<nicid>1</nicid>
+                <network id="1">wan-net</network>
             </interface>
             <interface>
                 <nicid>2</nicid>
-                <network>codefest-net</network>
+                <network id="2">codefest-net</network>
             </interface>
 	    <interface>
 		<nicid>3</nicid>
-		<network>management-net</network>
+		<network id="3">management-net</network>
 	    </interface>
         </interfaces>
         <scaling>
