@@ -8,8 +8,6 @@ and non-interactive mode.
   * [Supported platforms](#supported-platforms)
   * [Usage](#usage)
   * [Operation](#operation)
-  * [Testing](#testing)
-  * [FAQ](#faq)
 
 ## Supported platforms
 NFVIS 3.9.1\
