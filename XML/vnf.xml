@@ -1,14 +1,14 @@
 <deployment>
-    <name>ISRv</name>
+    <name>ASAv</name>
     <vm_group>
-        <name>ISRv</name>
-        <image>vedge-18.4.0-PacStar.tar.gz</image>
+        <name>ASAv</name>
+        <image>asav982-28-PacStar.tar.gz</image>
         <bootup_time>600</bootup_time>
         <recovery_wait_time>0</recovery_wait_time>
         <recovery_policy>
             <action_on_recovery>REBOOT_ONLY</action_on_recovery>
         </recovery_policy>
-	 <flavor>Vedge-Standard</flavor>
+	 <flavor>ASAv5</flavor>
         <interfaces>
             <interface>
                 <nicid>0</nicid>
@@ -19,23 +19,23 @@
                         <protocol>tcp</protocol>
                         <vnf_port>22</vnf_port>
                         <external_port_range>
-                            <start>22225</start>
-                            <end>22225</end>
+                            <start>22223</start>
+                            <end>22223</end>
                         </external_port_range>
                     </port>
                 </port_forwarding>
             </interface>
             <interface>
 		<nicid>1</nicid>
-                <network id="1">wan-net</network>
+                <network id="1">service-net</network>
             </interface>
             <interface>
                 <nicid>2</nicid>
-                <network id="2">codefest-net</network>
+                <network id="2">lan-net</network>
             </interface>
 	    <interface>
 		<nicid>3</nicid>
-		<network id="3">management-net</network>
+		<network id="3">mgmt-net</network>
 	    </interface>
         </interfaces>
         <scaling>

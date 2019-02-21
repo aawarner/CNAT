@@ -1,4 +1,0 @@
-<network>
-  <name>codefest-net</name>
-  <bridge>codefest-br</bridge>
-</network>
