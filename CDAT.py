@@ -128,9 +128,9 @@ def cli(args):
                   "\nTo retrieve information about the system use the get method.\n"
                   "To delete an existing bridge, network, or VNF use the delete method.\n"
                   "\nExamples:\n"
-                  "Get Method - CDAT.py g networks 172.16.82.123\n"
-                  "Post Method - CDAT.py p deployments 172.16.82.123 ASAv_ENCS.xml\n"
-                  "Delete Method - CDAT.py d deployments 172.16.82.123 ASAv")
+                  "Get Method - CDAT.py g networks 10.10.10.10\n"
+                  "Post Method - CDAT.py p deployments 10.10.10.10 ASAv_ENCS.xml\n"
+                  "Delete Method - CDAT.py d deployments 10.10.10.10 ASAv")
             sys.exit()
     else:
         method,key,name_ip=(sys.argv[1],sys.argv[2],sys.argv[3])
@@ -464,7 +464,6 @@ def main():
                 print("\nCurrently Deployed VNF's: \n")
             try:
                 print(tabulate([i for i in response_json['vmlc:deployments']['deployment']],tablefmt="fancy_grid")+'\n')
-#               [print(i["name"]+'\n') for i in response_json["vmlc:deployments"]["deployment"]]
             except Exception as e:
                 if code == 204:
                     print("There are no running VNF deployments on device. \n")
@@ -488,7 +487,8 @@ def main():
             else:
                 print("Currently Deployed Virtual Switches on NFVIS: \n")
             try:
-                [print(i["name"]+'\n') for i in response_json["network:networks"]["network"]]
+                print(tabulate([i for i in response_json['network:networks']['network']],
+                               tablefmt="fancy_grid") + '\n')
             except Exception as e:
                 print(repr(e))
             print()
@@ -502,6 +502,7 @@ def main():
                 print("Virtual Switch deletion failed \n")
             else:
                 print("Virtual Switch deletion successful \n")
+
             # API call to get running bridges on NFVIS device
 
             uri,header=nfvis_urns.get('bridges',url)
