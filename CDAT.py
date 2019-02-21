@@ -19,6 +19,7 @@ from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
 from Cisco_NFV_API_SDK import DNAC_API_Calls as dnac_calls 
 from Cisco_NFV_API_SDK import DNAC_URNs as dnac_urns
 import xml.etree.ElementTree as ET
+import textwrap
 import sys
 import requests
 import getpass
@@ -102,6 +103,36 @@ def response_parser(response_json):
 def cli(args):
     if len(sys.argv)==5:
         method,key,name_ip,setting=(sys.argv[1],sys.argv[2],sys.argv[3],sys.argv[4])
+    elif len(sys.argv)==2:
+        method=(sys.argv[1])
+        if method is 'h':
+            print("Non-Interactive mode supports the following arguments:\n"
+                  "\nArgument 1:\n"
+                  "g = get\n"
+                  "p = post\n"
+                  "d = delete\n"
+                  "\nArgument 2:\n"
+                  "\nGet Method:\n"
+                  "platform-detail, bridges, networks, deployments, flavors, images\n"
+                  "\nPost Method:\n"
+                  "bridges, networks, deployments\n"
+                  "\nDelete Method:\n"
+                  "bridges, networks, deployments\n"
+                  "\nArgument 3:\n"
+                  "IP address of NFVIS system\n"
+                  "\nArgument 4:\n"
+                  "When using the post method a .xml template is required for configuration\n"
+                  "of the bridge, network, or VNF. Examples of the templates can be found\n"
+                  "in the XML folder.\n"
+                  "\nWhen using the delete method argument 4 is the name of the bridge,"
+                  "\nnetwork, or VNF that is to be deleted."
+                  "\nTo retrieve information about the system use the get method.\n"
+                  "To delete an existing bridge, network, or VNF use the delete method.\n"
+                  "\nExamples:\n"
+                  "Get Method - CDAT.py g networks 172.16.82.123\n"
+                  "Post Method - CDAT.py p deployments 172.16.82.123 ASAv_ENCS.xml\n"
+                  "Delete Method - CDAT.py d deployments 172.16.82.123 ASAv")
+            sys.exit()
     else:
         method,key,name_ip=(sys.argv[1],sys.argv[2],sys.argv[3])
     username = input("Username: ")
