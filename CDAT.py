@@ -19,7 +19,6 @@ from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
 from Cisco_NFV_API_SDK import DNAC_API_Calls as dnac_calls 
 from Cisco_NFV_API_SDK import DNAC_URNs as dnac_urns
 import xml.etree.ElementTree as ET
-import textwrap
 import sys
 import requests
 import getpass
