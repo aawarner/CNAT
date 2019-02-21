@@ -6,7 +6,6 @@ and virtual network functions to NFVIS. This tool works in an interactive
 and non-interactive mode.
 
   * [Supported platforms](#supported-platforms)
-  * [Dependencies](#dependencies)
   * [Usage](#usage)
   * [Operation](#operation)
 
@@ -15,12 +14,6 @@ NFVIS 3.9.1\
 NFVIS 3.9.2\
 NFVIS 3.10.1\
 NFVIS 3.10.2
-
-## Dependencies
-
-PyNFVSDK\
-tabulate\
-getpass
 
 ## Usage
 
