@@ -1,4 +1,4 @@
-# Cisco NFVIS Automation Tool
+# Cisco DNA Automation Tool
 A Python script that will automate the administration of NFVIS. 
 This program will enable the retrieval of platform information 
 as well as automate the deployment and deletion of bridges, networks,
@@ -110,6 +110,8 @@ g = platform-detail, bridges, networks, deployments, flavors, images
 p = bridges, networks, deployments
 	
 d = bridges, networks, deployments
+
+h = help menu
 ```
 g = get\
 p = post\
@@ -127,7 +129,7 @@ in the XML folder.
 
 GET:
 ```
-python3 CDAT.py g networks 172.16.82.123
+CDAT.py g networks 172.16.82.123
 Username: admin
 Password: 
 API Response Code: 200 :
