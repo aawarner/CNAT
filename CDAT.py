@@ -256,12 +256,12 @@ def dnac_reset():
         print("Device deletion from inventory successful\n")
 
 def deploy_bridge(nfvis, url, username, password):
-    tree = ET.parse('bridge.xml')
+    tree = ET.parse('XML/bridge.xml')
     root = tree.getroot()
     for child in root:
         child.text = input("Enter the name of the bridge to be deployed: ")
-    tree.write("bridge.xml")
-    contents = open("bridge.xml").read()
+    tree.write("XML/bridge.xml")
+    contents = open("XML/bridge.xml").read()
     print(contents)
     uri,header,post_data=nfvis_urns.post('bridges',url,format='xml')
     code,response=nfvis_calls.post(username,password,uri,header,xml_data=contents)
@@ -273,16 +273,16 @@ def deploy_bridge(nfvis, url, username, password):
         print("Bridge deployment successful\n")
 
 def deploy_vnetwork(nfvis, url, username, password):
-    tree = ET.parse('network.xml')
+    tree = ET.parse('XML/network.xml')
     root = tree.getroot()
     for child in root:
         if child.tag == str('name'):
             child.text = input("Enter the name of the network to be deployed: ")
-            tree.write("network.xml")
+            tree.write("XML/network.xml")
         if child.tag == str('bridge'):
             child.text = input("Enter the name of the bridge to be associated with the network.\n"
                                "This should be the bridge that was previously created: ")
-            tree.write("network.xml")
+            tree.write("XML/network.xml")
             contents = open("network.xml").read()
             print(contents)
     uri,header,post_data=nfvis_urns.post('networks',url,format='xml')
@@ -294,15 +294,15 @@ def deploy_vnetwork(nfvis, url, username, password):
         print("Network deployment successful\n")
 
 def deploy_vnf(nfvis, url, username, password):
-    tree = ET.parse('vnf.xml')
+    tree = ET.parse('XML/vnf.xml')
     root = tree.getroot()
     for child in root.findall("./name"):
         child.text = input("Enter a name for the deployment: ")
-        tree.write("vnf.xml")
+        tree.write("XML/vnf.xml")
 
     for child in root.findall("./vm_group/name"):
         child.text = input("Enter a name for the VNF: ")
-        tree.write("vnf.xml")
+        tree.write("XML/vnf.xml")
 
     uri, header = nfvis_urns.get('images', url)
     code, response_json = nfvis_calls.get(username, password, uri, header)
@@ -323,7 +323,7 @@ def deploy_vnf(nfvis, url, username, password):
 
     for child in root.iter('image'):
         child.text = input("Enter the name of the image to be deployed.\nImage must exist on the system: ")
-        tree.write("vnf.xml")
+        tree.write("XML/vnf.xml")
 
     uri, header = nfvis_urns.get('flavors', url)
     code, response_json = nfvis_calls.get(username, password, uri, header)
@@ -344,7 +344,7 @@ def deploy_vnf(nfvis, url, username, password):
 
     for child in root.iter('flavor'):
         child.text = input("Enter the VNF flavor\nFlavor must exist on the system: ")
-        tree.write("vnf.xml")
+        tree.write("XML/vnf.xml")
 
     uri, header = nfvis_urns.get('networks', url)
     code, response_json = nfvis_calls.get(username, password, uri, header)
@@ -363,40 +363,40 @@ def deploy_vnf(nfvis, url, username, password):
     for child in root.findall("./vm_group/interfaces/interface/network[@id='1']"):
         if child.tag == str('network'):
             child.text = input("Enter the name of the network to connect to nicid 1: ")
-            tree.write("vnf.xml")
+            tree.write("XML/vnf.xml")
         else:
             continue
 
     for child in root.findall("./vm_group/interfaces/interface/network[@id='2']"):
         if child.tag == str('network'):
             child.text = input("Enter the name of the network to connect to nicid 2: ")
-            tree.write("vnf.xml")
+            tree.write("XML/vnf.xml")
         else:
             continue
 
     for child in root.findall("./vm_group/interfaces/interface/network[@id='3']"):
         if child.tag == str('network'):
             child.text = input("Enter the name of the network to connect to nicid 3: ")
-            tree.write("vnf.xml")
+            tree.write("XML/vnf.xml")
         else:
             continue
 
     for child in root.findall("./vm_group/interfaces/interface/port_forwarding/port/"):
         if child.tag == str('vnf_port'):
             child.text = input('Enter the VNF port to forward. Usually port 22: ')
-            tree.write('vnf.xml')
+            tree.write('XML/vnf.xml')
 
     for child in root.findall("./vm_group/interfaces/interface/port_forwarding/port/external_port_range/"):
         if child.tag == str('start'):
             child.text = input('Enter the first port in the range for external port forwarding: ')
-            tree.write('vnf.xml')
+            tree.write('XML/vnf.xml')
         elif child.tag == str('end'):
             child.text = input('Enter the last port in the range for external port forwarding: ')
-            tree.write('vnf.xml')
+            tree.write('XML/vnf.xml')
         else:
             continue
 
-    contents = open("vnf.xml").read()
+    contents = open("XML/vnf.xml").read()
     print(contents, "\n")
 
     uri,header,post_data=nfvis_urns.post('deployments',url,format='xml')
