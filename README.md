@@ -6,6 +6,7 @@ and virtual network functions to NFVIS. This tool works in an interactive
 and non-interactive mode.
 
   * [Supported platforms](#supported-platforms)
+  * [Dependencies](#dependencies)
   * [Usage](#usage)
   * [Operation](#operation)
 
@@ -32,7 +33,7 @@ usage: CDAT.py
 Non-Interactive Mode
 
 ```
-usage: CDAT.py [p] deployments {ip-address} ASAv.xml
+usage: CDAT.py [method] [option] [ip-address] [file.xml]
 ```
 
 ## Operation
@@ -131,16 +132,22 @@ When using the post method a .xml template is required for configuration
 of the bridge, network, or VNF. Examples of the templates can be found
 in the XML folder.
 
+If the creds.json file is not present in the working directory the user
+will be prompted to enter device credentials. The program will then store
+the ip address and credentials in the creds.json file for future use providing
+a true non interactive experience. The creds.json file has been added to
+.gitignore to ensure it is not tracked by git.
+
 **Examples**
 
 **GET:**
 ```
-CDAT.py g networks 172.16.82.123
+CDAT.py g networks 10.10.10.10
 Username: admin
 Password: 
 API Response Code: 200 :
 
-Request URI: https://172.16.82.123/api/config/networks?deep
+Request URI: https://10.10.10.10/api/config/networks?deep
 
 JSON Reponse:
 
@@ -166,12 +173,11 @@ network:networks
 ```
 
 ```
-python3 CDAT.py g deployments 172.16.82.123
-Username: admin
-Password: 
+python3 CDAT.py g deployments 10.10.10.10
+
 API Response Code: 200 :
 
-Request URI: https://172.16.82.123/api/config/vm_lifecycle/tenants/tenant/admin/deployments
+Request URI: https://10.10.10.10/api/config/vm_lifecycle/tenants/tenant/admin/deployments
 
 JSON Reponse:
 
@@ -193,12 +199,12 @@ vmlc:deployments
 ```
 **POST:**
 ```
-CDAT.py p deployments 172.16.82.123 ASAv_ENCS.xml 
+CDAT.py p deployments 10.10.10.10 ASAv_ENCS.xml 
 Username: admin
 Password: 
 API Response Code: 201 :
 
-Request URI: https://172.16.82.123/api/config/vm_lifecycle/tenants/tenant/admin/deployments
+Request URI: https://10.10.10.10/api/config/vm_lifecycle/tenants/tenant/admin/deployments
 
 JSON Reponse:
 
@@ -210,11 +216,11 @@ VNF deployment successful
 ```
 **DELETE:**
 ```
-CDAT.py d deployments 172.16.82.123 ASAv
+CDAT.py d deployments 10.10.10.10 ASAv
 Username: admin
 Password: 
 
-https://172.16.82.123/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/ASAv 
+https://10.10.10.10/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/ASAv 
 API Status Code: 204
 
 VNF deletion successful
