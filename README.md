@@ -15,6 +15,12 @@ NFVIS 3.9.2\
 NFVIS 3.10.1\
 NFVIS 3.10.2
 
+## Dependencies
+
+PyNFVSDK\
+tabulate\
+getpass
+
 ## Usage
 
 Interactive Mode
@@ -31,7 +37,7 @@ usage: CDAT.py [p] deployments {ip-address} ASAv.xml
 
 ## Operation
 
-Interactive Mode
+###Interactive Mode
 
 ```
 CDAT.py 
@@ -101,7 +107,7 @@ Platform Details:
 ```
 
 
-**Non-Interactive Mode**
+###Non-Interactive Mode
 
 Non-Interactive mode supports the following arguments:
 ```
@@ -127,7 +133,7 @@ in the XML folder.
 
 **Examples**
 
-GET:
+**GET:**
 ```
 CDAT.py g networks 172.16.82.123
 Username: admin
@@ -185,7 +191,7 @@ vmlc:deployments
                 -->ROUTER
 
 ```
-POST:
+**POST:**
 ```
 CDAT.py p deployments 172.16.82.123 ASAv_ENCS.xml 
 Username: admin
@@ -202,7 +208,7 @@ JSON Reponse:
 VNF deployment successful
 
 ```
-DELETE:
+**DELETE:**
 ```
 CDAT.py d deployments 172.16.82.123 ASAv
 Username: admin
