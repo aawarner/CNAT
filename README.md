@@ -27,6 +27,8 @@ usage: CDAT.py
 
 ```
 usage: CDAT.py [method] [option] [ip-address] [file.xml]
+
+usage: CDAT.py [method] [option] [bulk] [file.xml]
 ```
 
 ## Operation
@@ -115,20 +117,11 @@ p = bridges, networks, deployments
 	
 d = bridges, networks, deployments
 
-G = platform-detail, bridges, networks, deployments, flavors, images
-
-P = bridges, networks, deployments
-	
-D = bridges, networks, deployments
-
 h = help menu
 ```
 g = get\
 p = post\
-d = delete\
-G = get for multiple devices\
-P = post for multiple devices\
-D = delete for multiple devices
+d = delete
 
 To retrieve information about the system use the get method. 
 To deploy a bridge, network, or VNF use the post method. 
@@ -143,12 +136,14 @@ will be prompted to enter device credentials. The program will then create
 the creds.json file in the working directory. The IP address and credentials
 entered will be stored in the creds.json file for future use providing a 
 true non interactive experience. Alternatively, the creds.json file can be 
-prepopulated for mass automation. The creds.json file has been added to
+prepopulated for bulk automation. The creds.json file has been added to
 .gitignore to ensure it is not tracked by git.
 
-When using the G, P, or D method the program will import the IP addresses in
-creds.json and make the instructed API call on all corresponding devices.
-The first IP address in creds.json should still be entered as a cli argument.
+Non-interactive mode supports the use of the "bulk" argument. If the "bulk"
+argument is used instead of an IP address then the requested operation will
+be run on all devices that exist within creds.json.
+
+
 
 **Examples**
 
@@ -227,7 +222,7 @@ VNF deployment successful
 
 ```
 ```
-CDAT.py P networks 10.10.10.10 XML/network.xml 
+CDAT.py p networks bulk XML/network.xml 
 API Response Code: 201 :
 
 Request URI: https://10.10.10.10/api/config/networks
@@ -272,7 +267,7 @@ VNF deletion successful
 
 ```
 ```
-CDAT.py D bridge 10.10.10.10 test-br
+CDAT.py d bridge bulk test-br
 
 https://10.10.10.10/api/config/bridges/bridge/test-br 
 API Status Code: 204
