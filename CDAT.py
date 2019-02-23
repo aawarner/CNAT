@@ -170,108 +170,62 @@ def cli(args):
         creds = json.load(f)
 
     if name_ip not in creds.keys():
-        username = input("Username: ")
-        password = getpass.getpass()
-        creds.update({name_ip: {username: password}})
-        with open("creds.json", "w") as f:
-            json.dump(creds, f)
+        if name_ip != "bulk":
+            username = input("Username: ")
+            password = getpass.getpass()
+            creds.update({name_ip: {username: password}})
+            with open("creds.json", "w") as f:
+                json.dump(creds, f)
+        else:
+            ip_list = list(creds.keys())
     else:
-        username, password = (
-            list(creds[name_ip].keys())[0],
-            list(creds[name_ip].values())[0],
-        )
-
-    url = "https://%s" % name_ip
+        ip_list = [name_ip]
 
     if method is "g":
-        uri, header = nfvis_urns.get(key, url)
-        code, response_json = nfvis_calls.get(username, password, uri, header)
-        print(
-            "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-            % (code, uri, response_json)
-        )
-        response_parser(response_json)
+        for i in ip_list:
+            url = "https://%s" % i
+            username, password = (list(creds[i].keys())[0], list(creds[i].values())[0])
+            uri, header = nfvis_urns.get(key, url)
+            code, response_json = nfvis_calls.get(username, password, uri, header)
+            print(
+                "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                % (code, uri, response_json)
+            )
+            response_parser(response_json)
     if method is "p":
-        uri, header, post_data = nfvis_urns.post(key, url, format="xml")
-        with open(setting) as f:
-            contents = f.read()
-        code, response = nfvis_calls.post(
-            username, password, uri, header, xml_data=contents
-        )
-        print(
-            "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-            % (code, uri, response)
-        )
-        if code == 201:
-            print("Deployment successful")
-        else:
-            print("Deployment failed")
+        for i in ip_list:
+            url = "https://%s" % i
+            username, password = (list(creds[i].keys())[0], list(creds[i].values())[0])
+            uri, header, post_data = nfvis_urns.post(key, url, format="xml")
+            with open(setting) as f:
+                contents = f.read()
+            code, response = nfvis_calls.post(
+                username, password, uri, header, xml_data=contents
+            )
+            print(
+                "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                % (code, uri, response)
+            )
+            if code == 201:
+                print("Deployment successful")
+            else:
+                print("Deployment failed")
     if method is "d":
-        uri, header = nfvis_urns.delete(
-            key, url, vnf=setting, bridge=setting, network=setting
-        )
-        code, response = nfvis_calls.delete(username, password, uri, header)
-        print("\n%s \nAPI Status Code: %i\n" % (uri, code))
-        if code == 204:
-            print("Deletion successful")
-        else:
-            print("Deletion failed")
-    if method is "G":
-        with open("creds.json", "r") as f:
-            ip = json.load(f)
-            for i in ip:
-                try:
-                    url = "https://%s" % i
-                    uri, header = nfvis_urns.get(key, url)
-                    code, response_json = nfvis_calls.get(
-                        username, password, uri, header
-                    )
-                    print(
-                        "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-                        % (code, uri, response_json)
-                    )
-                    response_parser(response_json)
-                except:
-                    pass
-    if method is "P":
-        with open("creds.json", "r") as f:
-            ip = json.load(f)
-            for i in ip:
-                try:
-                    url = "https://%s" % i
-                    uri, header, post_data = nfvis_urns.post(key, url, format="xml")
-                    with open(setting) as f:
-                        contents = f.read()
-                    code, response = nfvis_calls.post(
-                        username, password, uri, header, xml_data=contents
-                    )
-                    print(
-                        "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-                        % (code, uri, response)
-                    )
-                    if code == 201:
-                        print("Deployment successful")
-                    else:
-                        print("Deployment failed")
-                except:
-                    pass
-    if method is "D":
-        with open("creds.json", "r") as f:
-            ip = json.load(f)
-            for i in ip:
-                try:
-                    url = "https://%s" % i
-                    uri, header = nfvis_urns.delete(
-                        key, url, vnf=setting, bridge=setting, network=setting
-                    )
-                    code, response = nfvis_calls.delete(username, password, uri, header)
-                    print("\n%s \nAPI Status Code: %i\n" % (uri, code))
-                    if code == 204:
-                        print("Deletion successful")
-                    else:
-                        print("Deletion failed")
-                except:
-                    pass
+        for i in ip_list:
+            url = "https://%s" % i
+            username, password = (list(creds[i].keys())[0], list(creds[i].values())[0])
+            uri, header, = nfvis_urns.delete(
+                key, url, vnf=setting, bridge=setting, network=setting
+            )
+            code, response = nfvis_calls.delete(username, password, uri, header)
+            print(
+                "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                % (code, uri, response)
+            )
+            if code == 204:
+                print("Deletion successful")
+            else:
+                print("Deletion failed")
 
 
 def sdwan_reset(vmanage, vmanage_username, vmanage_password):
