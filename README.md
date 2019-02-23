@@ -139,9 +139,11 @@ of the bridge, network, or VNF. Examples of the templates can be found
 in the XML folder.
 
 If the creds.json file is not present in the working directory the user
-will be prompted to enter device credentials. The program will then store
-the ip address and credentials in the creds.json file for future use providing
-a true non interactive experience. The creds.json file has been added to
+will be prompted to enter device credentials. The program will then create 
+the creds.json file in the working directory. The IP address and credentials
+entered will be stored in the creds.json file for future use providing a 
+true non interactive experience. Alternatively, the creds.json file can be 
+prepopulated for mass automation. The creds.json file has been added to
 .gitignore to ensure it is not tracked by git.
 
 When using the G, P, or D method the program will import the IP addresses in
@@ -208,7 +210,7 @@ vmlc:deployments
 ```
 **POST:**
 ```
-CDAT.py p deployments 10.10.10.10 ASAv_ENCS.xml 
+CDAT.py p deployments 10.10.10.10 XML/ASAv_ENCS.xml 
 Username: admin
 Password: 
 API Response Code: 201 :
