@@ -148,6 +148,7 @@ prepopulated for mass automation. The creds.json file has been added to
 
 When using the G, P, or D method the program will import the IP addresses in
 creds.json and make the instructed API call on all corresponding devices.
+The first IP address in creds.json should still be entered as a cli argument.
 
 **Examples**
 
