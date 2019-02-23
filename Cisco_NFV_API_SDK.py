@@ -18,14 +18,14 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 class NFVIS_API_Calls:
-    '''NFVIS class to define REST API URLs and Headers with
+    """NFVIS class to define REST API URLs and Headers with
     get, post and delete methods.
     username=string,
     password=string
     url=string :formatted from NFVIS_URNs class
     header=dictionary :from NFVIS_URNs class
 
-    '''
+    """
 
     def __init__(self, username=None, password=None, url=None, data=None):
         self.username = username
@@ -34,75 +34,110 @@ class NFVIS_API_Calls:
         self.data = data
 
     def get(username, password, uri, header):
-        '''gets the specified uri and returns: response code, json formatted response. '''
-        response = requests.get(uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header)
+        """gets the specified uri and returns: response code, json formatted response. """
+        response = requests.get(
+            uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header
+        )
         if response.status_code != 204:
             code = response.status_code
             response = response.json()
         else:
-            response = json.dumps('None')
+            response = json.dumps("None")
             code = response.status_code
         return code, response
 
     def delete(username, password, uri, header):
-        '''gets the specified uri and returns: response code, response. '''
-        response = requests.delete(uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header)
+        """gets the specified uri and returns: response code, response. """
+        response = requests.delete(
+            uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header
+        )
         return response.status_code, response
 
-    def post(username, password, uri, header, xml_data='', json_data=''):
-        '''gets the specified uri and returns: response code, json formatted response. '''
-        if xml_data != '':
+    def post(username, password, uri, header, xml_data="", json_data=""):
+        """gets the specified uri and returns: response code, json formatted response. """
+        if xml_data != "":
             data = xml_data
         else:
             data = json_data
-        response = requests.post(uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header, data=data)
+        response = requests.post(
+            uri,
+            verify=False,
+            auth=HTTPBasicAuth(username, password),
+            headers=header,
+            data=data,
+        )
         return response.status_code, response
 
 
 class NFVIS_URNs:
-
     def __init__(self, url):
         self.url = url
 
-    def get(self, url, format='json'):
-        '''returns appropriate REST GET uri and header given shorthand key'''
-        rest_get_uri = {'deployments': '%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments' % url,
-                        'platform-detail': "%s/api/operational/platform-detail" % url,
-                        'networks': '%s/api/config/networks?deep' % url,
-                        'bridges': '%s/api/config/bridges?deep' % url,
-                        'images': '%s/api/config/vm_lifecycle/images?deep' % url,
-                        'flavors': '%s/api/config/vm_lifecycle/flavors' % url}
-        rest_get_header = {'json': {"content-type": "application/vnd.yang.collection+json",
-                                    "Accept": "application/vnd.yang.data+json"}, 'xml': None}
+    def get(self, url, format="json"):
+        """returns appropriate REST GET uri and header given shorthand key"""
+        rest_get_uri = {
+            "deployments": "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments"
+            % url,
+            "platform-detail": "%s/api/operational/platform-detail" % url,
+            "networks": "%s/api/config/networks?deep" % url,
+            "bridges": "%s/api/config/bridges?deep" % url,
+            "images": "%s/api/config/vm_lifecycle/images?deep" % url,
+            "flavors": "%s/api/config/vm_lifecycle/flavors" % url,
+        }
+        rest_get_header = {
+            "json": {
+                "content-type": "application/vnd.yang.collection+json",
+                "Accept": "application/vnd.yang.data+json",
+            },
+            "xml": None,
+        }
         return rest_get_uri[self], rest_get_header[format]
 
-    def post(self, url, format='json', vnf=None, bridge=None, network=None):
-        '''returns appropriate REST POST uri and header given shorthand key and object to be posted
-        url argument needs to be in format: https://<ip or name of nfvis system>'''
-        rest_post_uri = {'bridges': "%s/api/config/bridges" % url,
-                         'networks': "%s/api/config/networks" % url,
-                         'deployments': "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments" % url}
+    def post(self, url, format="json", vnf=None, bridge=None, network=None):
+        """returns appropriate REST POST uri and header given shorthand key and object to be posted
+        url argument needs to be in format: https://<ip or name of nfvis system>"""
+        rest_post_uri = {
+            "bridges": "%s/api/config/bridges" % url,
+            "networks": "%s/api/config/networks" % url,
+            "deployments": "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments"
+            % url,
+        }
         rest_post_header = {
-            'json': {'content-type': "application/vnd.yang.data+json", 'accept': "application/vnd.yang.data+json"},
-            'xml': {"content-type": "application/vnd.yang.data+xml", "Accept": "application/vnd.yang.data+xml"}}
-        rest_post_json_data = {'bridges': "{\"bridge\": [{\"name\": \"%s\"}]}" % bridge,
-                               'networks': "{\"network\":[{\"name\":\"%s\",\"bridge\":\"%s\"}]}" % (network, bridge),
-                               'deployments': None}
+            "json": {
+                "content-type": "application/vnd.yang.data+json",
+                "accept": "application/vnd.yang.data+json",
+            },
+            "xml": {
+                "content-type": "application/vnd.yang.data+xml",
+                "Accept": "application/vnd.yang.data+xml",
+            },
+        }
+        rest_post_json_data = {
+            "bridges": '{"bridge": [{"name": "%s"}]}' % bridge,
+            "networks": '{"network":[{"name":"%s","bridge":"%s"}]}' % (network, bridge),
+            "deployments": None,
+        }
         return rest_post_uri[self], rest_post_header[format], rest_post_json_data[self]
 
-    def delete(self, url, format='json', vnf='', bridge='', network=''):
-        '''returns appropriate REST DELETE uri and header given shorthand key and object to be deleted'''
+    def delete(self, url, format="json", vnf="", bridge="", network=""):
+        """returns appropriate REST DELETE uri and header given shorthand key and object to be deleted"""
         rest_delete_uri = {
-            'deployments': "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/%s" % (url, vnf),
-            'network': '%s/api/config/networks/network/%s' % (url, network),
-            'bridge': '%s/api/config/bridges/bridge/%s' % (url, bridge)}
-        rest_delete_header = {'json': {"content-type": "application/vnd.yang.collection+json",
-                                       "Accept": "application/vnd.yang.data+json"}, 'xml': None}
+            "deployments": "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/%s"
+            % (url, vnf),
+            "network": "%s/api/config/networks/network/%s" % (url, network),
+            "bridge": "%s/api/config/bridges/bridge/%s" % (url, bridge),
+        }
+        rest_delete_header = {
+            "json": {
+                "content-type": "application/vnd.yang.collection+json",
+                "Accept": "application/vnd.yang.data+json",
+            },
+            "xml": None,
+        }
         return rest_delete_uri[self], rest_delete_header[format]
 
 
 class SDWAN_API_Calls:
-
     def __init__(self, username=None, password=None, url=None, data=None):
         self.username = username
         self.password = password
@@ -110,42 +145,52 @@ class SDWAN_API_Calls:
         self.data = data
 
     def get(username, password, uri, header):
-        '''gets the specified uri and returns: response code, json formatted response. '''
-        response = requests.get(uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header)
+        """gets the specified uri and returns: response code, json formatted response. """
+        response = requests.get(
+            uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header
+        )
         if response.status_code != 204:
             code = response.status_code
             response = response.json()
         else:
-            response = json.dumps('None')
+            response = json.dumps("None")
             code = response.status_code
         return code, response
 
     def put(username, password, uri, header):
-        '''gets the specified uri and returns: response code, response. '''
-        response = requests.put(uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header)
+        """gets the specified uri and returns: response code, response. """
+        response = requests.put(
+            uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header
+        )
         return response.status_code, response
 
 
 class SDWAN_URNs:
-
     def __init__(self, url):
         self.url = url
 
     def get(self, url):
-        '''returns appropriate REST GET uri and header given shorthand key'''
-        rest_get_uri = {'vedges': "%s/dataservice/system/device/vedges" % url}
-        rest_get_json_header = {"content-type": "application/json", "Accept": "application/json"}
+        """returns appropriate REST GET uri and header given shorthand key"""
+        rest_get_uri = {"vedges": "%s/dataservice/system/device/vedges" % url}
+        rest_get_json_header = {
+            "content-type": "application/json",
+            "Accept": "application/json",
+        }
         return rest_get_uri[self], rest_get_json_header
 
-    def put(self, url, data=''):
-        '''returns appropriate REST PUT uri and header given shorthand key and object to be posted'''
-        rest_put_uri = {'decommission': "%s/dataservice/system/device/decommission/%s" % (url, data)}
-        rest_put_json_header = {"content-type": "application/json", "Accept": "application/json"}
+    def put(self, url, data=""):
+        """returns appropriate REST PUT uri and header given shorthand key and object to be posted"""
+        rest_put_uri = {
+            "decommission": "%s/dataservice/system/device/decommission/%s" % (url, data)
+        }
+        rest_put_json_header = {
+            "content-type": "application/json",
+            "Accept": "application/json",
+        }
         return rest_put_uri[self], rest_put_json_header
 
 
 class DNAC_API_Calls:
-
     def __init__(self, username=None, password=None, url=None, data=None):
         self.username = username
         self.password = password
@@ -153,36 +198,43 @@ class DNAC_API_Calls:
         self.data = data
 
     def get(uri, header):
-        '''gets the specified uri and returns: response code, json formatted response. '''
+        """gets the specified uri and returns: response code, json formatted response. """
         response = requests.get(uri, verify=False, headers=header)
         if response.status_code != 204:
             code = response.status_code
             response = response.json()
         else:
-            response = json.dumps('None')
+            response = json.dumps("None")
             code = response.status_code
         return code, response
 
     def delete(uri, header, payload):
-        '''gets the specified uri and returns: response code, response. '''
+        """gets the specified uri and returns: response code, response. """
         response = requests.delete(uri, verify=False, headers=header, params=payload)
         return response.status_code, response
 
 
 class DNAC_URNs:
-
     def __init__(self, url):
         self.url = url
 
-    def get(self, url, token=''):
-        '''returns appropriate REST GET uri and header given shorthand key'''
-        rest_get_uri = {'network-devices': "%s/dna/intent/api/v1/network-device" % url}
-        rest_get_json_header = {"content-type": "application/json", "x-auth-token": "%s" % token}
+    def get(self, url, token=""):
+        """returns appropriate REST GET uri and header given shorthand key"""
+        rest_get_uri = {"network-devices": "%s/dna/intent/api/v1/network-device" % url}
+        rest_get_json_header = {
+            "content-type": "application/json",
+            "x-auth-token": "%s" % token,
+        }
         return rest_get_uri[self], rest_get_json_header
 
-    def delete(self, url, device_id='', token=''):
-        '''returns appropriate REST GET uri and header given shorthand key'''
-        rest_delete_uri = {'device': "%s/dna/intent/api/v1/network-device/%s" % (url, device_id)}
-        rest_delete_json_header = {"content-type": "application/json", "x-auth-token": "%s" % token}
+    def delete(self, url, device_id="", token=""):
+        """returns appropriate REST GET uri and header given shorthand key"""
+        rest_delete_uri = {
+            "device": "%s/dna/intent/api/v1/network-device/%s" % (url, device_id)
+        }
+        rest_delete_json_header = {
+            "content-type": "application/json",
+            "x-auth-token": "%s" % token,
+        }
         reset_delete_payload = {"isForceDelete": "true"}
         return rest_delete_uri[self], rest_delete_json_header, reset_delete_payload
