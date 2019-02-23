@@ -115,11 +115,20 @@ p = bridges, networks, deployments
 	
 d = bridges, networks, deployments
 
+G = platform-detail, bridges, networks, deployments, flavors, images
+
+P = bridges, networks, deployments
+	
+D = bridges, networks, deployments
+
 h = help menu
 ```
 g = get\
 p = post\
-d = delete
+d = delete\
+G = get for multiple devices\
+P = post for multiple devices\
+D = delete for multiple devices
 
 To retrieve information about the system use the get method. 
 To deploy a bridge, network, or VNF use the post method. 
@@ -134,6 +143,9 @@ will be prompted to enter device credentials. The program will then store
 the ip address and credentials in the creds.json file for future use providing
 a true non interactive experience. The creds.json file has been added to
 .gitignore to ensure it is not tracked by git.
+
+When using the G, P, or D method the program will import the IP addresses in
+creds.json and make the instructed API call on all corresponding devices.
 
 **Examples**
 
@@ -211,6 +223,39 @@ JSON Reponse:
 VNF deployment successful
 
 ```
+```
+CDAT.py P networks 10.10.10.10 XML/network.xml 
+API Response Code: 201 :
+
+Request URI: https://10.10.10.10/api/config/networks
+
+JSON Reponse:
+
+<Response [201]>
+
+
+Deployment successful
+API Response Code: 201 :
+
+Request URI: https://10.10.10.11/api/config/networks
+
+JSON Reponse:
+
+<Response [201]>
+
+
+Deployment successful
+API Response Code: 201 :
+
+Request URI: https://10.10.10.12/api/config/networks
+
+JSON Reponse:
+
+<Response [201]>
+
+
+Deployment successful
+```
 **DELETE:**
 ```
 CDAT.py d deployments 10.10.10.10 ASAv
@@ -222,5 +267,22 @@ API Status Code: 204
 
 VNF deletion successful
 
+```
+```
+CDAT.py D bridge 10.10.10.10 test-br
 
+https://10.10.10.10/api/config/bridges/bridge/test-br 
+API Status Code: 204
+
+Deletion successful
+
+https://10.10.10.11/api/config/bridges/bridge/test-br 
+API Status Code: 204
+
+Deletion successful
+
+https://10.10.10.12/api/config/bridges/bridge/test-br 
+API Status Code: 204
+
+Deletion successful
 ```
