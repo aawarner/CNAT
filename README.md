@@ -17,13 +17,13 @@ NFVIS 3.10.2
 
 ## Usage
 
-Interactive Mode
+### Interactive Mode
 
 ```
 usage: CDAT.py
 ```
 
-Non-Interactive Mode
+### Non-Interactive Mode
 
 ```
 usage: CDAT.py [method] [option] [ip-address] [file.xml]
@@ -31,7 +31,7 @@ usage: CDAT.py [method] [option] [ip-address] [file.xml]
 
 ## Operation
 
-###Interactive Mode
+### Interactive Mode
 
 ```
 CDAT.py 
@@ -101,7 +101,7 @@ Platform Details:
 ```
 
 
-###Non-Interactive Mode
+### Non-Interactive Mode
 
 Non-Interactive mode supports the following arguments:
 ```
