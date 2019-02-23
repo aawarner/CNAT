@@ -126,6 +126,9 @@ def cli(args):
                 "g = get\n"
                 "p = post\n"
                 "d = delete\n"
+                "G = get for multiple devices\n"
+                "P = post for multiple devices\n"
+                "D = delete for multiple devices\n"
                 "\nArgument 2:\n"
                 "\nGet Method:\n"
                 "platform-detail, bridges, networks, deployments, flavors, images\n"
@@ -144,11 +147,16 @@ def cli(args):
                 "\nTo retrieve information about the system use the get method.\n"
                 "To delete an existing bridge, network, or VNF use the delete method.\n"
                 "To deploy a new bridge, network, or VNF use the post method.\n"
+                "\nWhen using method G,P, or D this program will import the IP addresses\n"
+                "from the creds.json file and make the API call on all devices in the file.\n"
                 "\nExamples:\n"
                 "Get Method - CDAT.py g networks 10.10.10.10\n"
-                "Post Method - CDAT.py p deployments 10.10.10.10 ASAv_ENCS.xml\n"
+                "Post Method - CDAT.py P deployments 10.10.10.10 ASAv_ENCS.xml\n"
                 "Delete Method - CDAT.py d deployments 10.10.10.10 ASAv"
             )
+            sys.exit()
+        else:
+            print("Invalid option entered. Try again.")
             sys.exit()
     else:
         method, key, name_ip = (sys.argv[1], sys.argv[2], sys.argv[3])
@@ -195,9 +203,9 @@ def cli(args):
             % (code, uri, response)
         )
         if code == 201:
-            print("VNF deployment successful")
+            print("Deployment successful")
         else:
-            print("VNF deployment failed")
+            print("Deployment failed")
     if method is "d":
         uri, header = nfvis_urns.delete(
             key, url, vnf=setting, bridge=setting, network=setting
@@ -205,9 +213,65 @@ def cli(args):
         code, response = nfvis_calls.delete(username, password, uri, header)
         print("\n%s \nAPI Status Code: %i\n" % (uri, code))
         if code == 204:
-            print("VNF deletion successful")
+            print("Deletion successful")
         else:
-            print("VNF deletion failed")
+            print("Deletion failed")
+    if method is "G":
+        with open("creds.json", "r") as f:
+            ip = json.load(f)
+            for i in ip:
+                try:
+                    url = "https://%s" % i
+                    uri, header = nfvis_urns.get(key, url)
+                    code, response_json = nfvis_calls.get(
+                        username, password, uri, header
+                    )
+                    print(
+                        "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                        % (code, uri, response_json)
+                    )
+                    response_parser(response_json)
+                except:
+                    pass
+    if method is "P":
+        with open("creds.json", "r") as f:
+            ip = json.load(f)
+            for i in ip:
+                try:
+                    url = "https://%s" % i
+                    uri, header, post_data = nfvis_urns.post(key, url, format="xml")
+                    with open(setting) as f:
+                        contents = f.read()
+                    code, response = nfvis_calls.post(
+                        username, password, uri, header, xml_data=contents
+                    )
+                    print(
+                        "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                        % (code, uri, response)
+                    )
+                    if code == 201:
+                        print("Deployment successful")
+                    else:
+                        print("Deployment failed")
+                except:
+                    pass
+    if method is "D":
+        with open("creds.json", "r") as f:
+            ip = json.load(f)
+            for i in ip:
+                try:
+                    url = "https://%s" % i
+                    uri, header = nfvis_urns.delete(
+                        key, url, vnf=setting, bridge=setting, network=setting
+                    )
+                    code, response = nfvis_calls.delete(username, password, uri, header)
+                    print("\n%s \nAPI Status Code: %i\n" % (uri, code))
+                    if code == 204:
+                        print("Deletion successful")
+                    else:
+                        print("Deletion failed")
+                except:
+                    pass
 
 
 def sdwan_reset(vmanage, vmanage_username, vmanage_password):
@@ -524,7 +588,7 @@ def main():
         if choice == "1":
             # API call to retrieve system info, then displays it, return to options
             url, username, password = getcreds()
-            uri, header = nfvis_urns.get("platform-detail", url)
+            uri, header = nfvis_urns.get("platform-details", url)
             code, response_json = nfvis_calls.get(username, password, uri, header)
             print("API Response Code: %i :\n%s" % (code, uri))
             if code == 401:
@@ -603,7 +667,7 @@ def main():
                 "NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated! \n"
             )
             vswitch = input("Which Virtual Switch would you like to delete? ")
-            uri, header = nfvis_urns.delete("network", url, network=vswitch)
+            uri, header = nfvis_urns.delete("networks", url, network=vswitch)
             code, response = nfvis_calls.delete(username, password, uri, header)
             print("API Response Code: %i :\n%s" % (code, uri))
 
@@ -636,7 +700,7 @@ def main():
             )
             bridge = input("Which Virtual Bridge would you like to delete? ")
 
-            uri, header = nfvis_urns.delete("bridge", url, bridge=bridge)
+            uri, header = nfvis_urns.delete("bridges", url, bridge=bridge)
             code, response = nfvis_calls.delete(username, password, uri, header)
             print("API Response Code: %i :\n%s" % (code, uri))
 
