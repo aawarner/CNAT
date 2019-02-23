@@ -36,7 +36,11 @@ class NFVIS_API_Calls:
     def get(username, password, uri, header):
         """gets the specified uri and returns: response code, json formatted response. """
         response = requests.get(
-            uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header
+            uri,
+            verify=False,
+            auth=HTTPBasicAuth(username, password),
+            headers=header,
+            timeout=10,
         )
         if response.status_code != 204:
             code = response.status_code
@@ -49,7 +53,11 @@ class NFVIS_API_Calls:
     def delete(username, password, uri, header):
         """gets the specified uri and returns: response code, response. """
         response = requests.delete(
-            uri, verify=False, auth=HTTPBasicAuth(username, password), headers=header
+            uri,
+            verify=False,
+            auth=HTTPBasicAuth(username, password),
+            headers=header,
+            timeout=10,
         )
         return response.status_code, response
 
@@ -65,6 +73,7 @@ class NFVIS_API_Calls:
             auth=HTTPBasicAuth(username, password),
             headers=header,
             data=data,
+            timeout=10,
         )
         return response.status_code, response
 
@@ -78,7 +87,7 @@ class NFVIS_URNs:
         rest_get_uri = {
             "deployments": "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments"
             % url,
-            "platform-detail": "%s/api/operational/platform-detail" % url,
+            "platform-details": "%s/api/operational/platform-detail" % url,
             "networks": "%s/api/config/networks?deep" % url,
             "bridges": "%s/api/config/bridges?deep" % url,
             "images": "%s/api/config/vm_lifecycle/images?deep" % url,
@@ -124,8 +133,8 @@ class NFVIS_URNs:
         rest_delete_uri = {
             "deployments": "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments/deployment/%s"
             % (url, vnf),
-            "network": "%s/api/config/networks/network/%s" % (url, network),
-            "bridge": "%s/api/config/bridges/bridge/%s" % (url, bridge),
+            "networks": "%s/api/config/networks/network/%s" % (url, network),
+            "bridges": "%s/api/config/bridges/bridge/%s" % (url, bridge),
         }
         rest_delete_header = {
             "json": {
