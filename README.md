@@ -32,7 +32,8 @@ usage: CDAT.py [method] [option] [ip-address] [file.xml]
 ## Operation
 
 ### Interactive Mode
-
+Interactive mode is a menu driven experience. The user should
+select an option that corresponds with the desired task.
 ```
 CDAT.py 
 
@@ -99,7 +100,10 @@ Platform Details:
 
  
 ```
-
+Deployment of bridges, networks, and VNF's in interactive mode require that
+bridge.xml, network.xml, and vnf.xml files be present in the XML directory.
+The program will rewrite these files for the POST operation to NFVIS based
+on user input.
 
 ### Non-Interactive Mode
 
@@ -166,7 +170,7 @@ network:networks
 ```
 
 ```
-python3 CDAT.py g deployments 10.10.10.10
+CDAT.py g deployments 10.10.10.10
 
 API Response Code: 200 :
 
