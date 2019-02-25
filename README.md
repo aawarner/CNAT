@@ -152,7 +152,7 @@ be run on all devices that exist within creds.json.
 CDAT.py g networks 10.10.10.10
 Username: admin
 Password: 
-API Response Code: 200 :
+API Response Code: 200
 
 Request URI: https://10.10.10.10/api/config/networks?deep
 
@@ -182,7 +182,7 @@ network:networks
 ```
 CDAT.py g deployments 10.10.10.10
 
-API Response Code: 200 :
+API Response Code: 200
 
 Request URI: https://10.10.10.10/api/config/vm_lifecycle/tenants/tenant/admin/deployments
 
@@ -209,7 +209,7 @@ vmlc:deployments
 CDAT.py p deployments 10.10.10.10 XML/ASAv_ENCS.xml 
 Username: admin
 Password: 
-API Response Code: 201 :
+API Response Code: 201
 
 Request URI: https://10.10.10.10/api/config/vm_lifecycle/tenants/tenant/admin/deployments
 
@@ -223,7 +223,7 @@ VNF deployment successful
 ```
 ```
 CDAT.py p networks bulk XML/network.xml 
-API Response Code: 201 :
+API Response Code: 201
 
 Request URI: https://10.10.10.10/api/config/networks
 
@@ -233,7 +233,7 @@ JSON Reponse:
 
 
 Deployment successful
-API Response Code: 201 :
+API Response Code: 201
 
 Request URI: https://10.10.10.11/api/config/networks
 
@@ -243,7 +243,7 @@ JSON Reponse:
 
 
 Deployment successful
-API Response Code: 201 :
+API Response Code: 201
 
 Request URI: https://10.10.10.12/api/config/networks
 
