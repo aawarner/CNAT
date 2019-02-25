@@ -188,7 +188,7 @@ def cli(args):
             uri, header = nfvis_urns.get(key, url)
             code, response_json = nfvis_calls.get(username, password, uri, header)
             print(
-                "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                "API Response Code: %i\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
                 % (code, uri, response_json)
             )
             response_parser(response_json)
@@ -203,7 +203,7 @@ def cli(args):
                 username, password, uri, header, xml_data=contents
             )
             print(
-                "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                "API Response Code: %i\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
                 % (code, uri, response)
             )
             if code == 201:
@@ -219,7 +219,7 @@ def cli(args):
             )
             code, response = nfvis_calls.delete(username, password, uri, header)
             print(
-                "API Response Code: %i :\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
+                "API Response Code: %i\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
                 % (code, uri, response)
             )
             if code == 204:
