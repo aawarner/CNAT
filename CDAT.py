@@ -373,7 +373,7 @@ def deploy_vnetwork(url, username, password):
                 "This should be the bridge that was previously created: "
             )
             tree.write("XML/network.xml")
-            contents = open("network.xml").read()
+            contents = open("XML/network.xml").read()
             print(contents)
     uri, header, post_data = nfvis_urns.post("networks", url, format="xml")
     code, response = nfvis_calls.post(
