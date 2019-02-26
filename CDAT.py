@@ -12,12 +12,12 @@ Description:    This program will perform API calls to automate the deployment a
                 delete VNF's and virtual switches from NFVIS.
 """
 
-from PyNFVSDK import NFVIS_API_Calls as nfvis_calls
-from PyNFVSDK import NFVIS_URNs as nfvis_urns
-from PyNFVSDK import SDWAN_API_Calls as sdwan_calls
-from PyNFVSDK import SDWAN_URNs as sdwan_urns
-from PyNFVSDK import DNAC_API_Calls as dnac_calls
-from PyNFVSDK import DNAC_URNs as dnac_urns
+from Cisco_NFV_API_SDK import NFVIS_API_Calls as nfvis_calls
+from Cisco_NFV_API_SDK import NFVIS_URNs as nfvis_urns
+from Cisco_NFV_API_SDK import SDWAN_API_Calls as sdwan_calls
+from Cisco_NFV_API_SDK import SDWAN_URNs as sdwan_urns
+from Cisco_NFV_API_SDK import DNAC_API_Calls as dnac_calls
+from Cisco_NFV_API_SDK import DNAC_URNs as dnac_urns
 import xml.etree.ElementTree as ET
 import json
 from os import listdir
