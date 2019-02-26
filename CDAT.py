@@ -40,7 +40,7 @@ def getcreds():
     password = getpass.getpass()
     return url, username, password
 
-# Git test
+
 def getdnactoken():
     # Basic Authenication and retrieval of DNA-C session token
     dnac = input("Enter the Cisco DNA Center IP address: \n")
@@ -126,9 +126,6 @@ def cli(args):
                 "g = get\n"
                 "p = post\n"
                 "d = delete\n"
-                "G = get for multiple devices\n"
-                "P = post for multiple devices\n"
-                "D = delete for multiple devices\n"
                 "\nArgument 2:\n"
                 "\nGet Method:\n"
                 "platform-detail, bridges, networks, deployments, flavors, images\n"
