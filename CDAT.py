@@ -40,7 +40,7 @@ def getcreds():
     password = getpass.getpass()
     return url, username, password
 
-
+# Git test
 def getdnactoken():
     # Basic Authenication and retrieval of DNA-C session token
     dnac = input("Enter the Cisco DNA Center IP address: \n")
