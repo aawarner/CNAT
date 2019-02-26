@@ -176,6 +176,7 @@ def cli(args):
             creds.update({name_ip: {username: password}})
             with open("creds.json", "w") as f:
                 json.dump(creds, f)
+            ip_list = [name_ip]
         else:
             ip_list = list(creds.keys())
     else:
