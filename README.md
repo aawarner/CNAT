@@ -1,4 +1,4 @@
-# Cisco DNA Automation Tool
+# Cisco NFVIS Automation Tool
 A Python script that will automate the administration of NFVIS. 
 This program will enable the retrieval of platform information 
 as well as automate the deployment and deletion of bridges, networks,
@@ -20,15 +20,15 @@ NFVIS 3.10.2
 ### Interactive Mode
 
 ```
-usage: CDAT.py
+usage: CNAT.py
 ```
 
 ### Non-Interactive Mode
 
 ```
-usage: CDAT.py [method] [option] [ip-address] [file.xml]
+usage: CNAT.py [method] [option] [ip-address] [file.xml]
 
-usage: CDAT.py [method] [option] [bulk] [file.xml]
+usage: CNAT.py [method] [option] [bulk] [file.xml]
 ```
 
 ## Operation
@@ -37,10 +37,10 @@ usage: CDAT.py [method] [option] [bulk] [file.xml]
 Interactive mode is a menu driven experience. The user should
 select an option that corresponds with the desired task.
 ```
-CDAT.py 
+CNAT.py 
 
 #################################
-####Cisco DNA Automation Tool####
+####Cisco NFVIS Automation Tool####
 ################################# 
 
 Select an option from the menu below. 
@@ -149,7 +149,7 @@ be run on all devices that exist within creds.json.
 
 **GET:**
 ```
-CDAT.py g networks 10.10.10.10
+CNAT.py g networks 10.10.10.10
 Username: admin
 Password: 
 API Response Code: 200
@@ -180,7 +180,7 @@ network:networks
 ```
 
 ```
-CDAT.py g deployments 10.10.10.10
+CNAT.py g deployments 10.10.10.10
 
 API Response Code: 200
 
@@ -206,7 +206,7 @@ vmlc:deployments
 ```
 **POST:**
 ```
-CDAT.py p deployments 10.10.10.10 XML/ASAv_ENCS.xml 
+CNAT.py p deployments 10.10.10.10 XML/ASAv_ENCS.xml 
 Username: admin
 Password: 
 API Response Code: 201
@@ -256,7 +256,7 @@ Deployment successful
 ```
 **DELETE:**
 ```
-CDAT.py d deployments 10.10.10.10 ASAv
+CNAT.py d deployments 10.10.10.10 ASAv
 Username: admin
 Password: 
 
@@ -267,7 +267,7 @@ VNF deletion successful
 
 ```
 ```
-CDAT.py d bridge bulk test-br
+CNAT.py d bridge bulk test-br
 
 https://10.10.10.10/api/config/bridges/bridge/test-br 
 API Status Code: 204
