@@ -13,7 +13,7 @@ writing, software distributed under the License is distributed on an "AS
 IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 or implied.
 
-Filename: CDAT.py
+Filename: CNAT.py
 Version: Python 3.7.2
 Authors: Aaron Warner (aawarner@cisco.com)
          Wade Lehrschall (wlehrsch@cisco.com)
@@ -546,7 +546,7 @@ def main():
     """
 
     print("#################################")
-    print("####Cisco DNA Automation Tool####")
+    print("###Cisco NFVIS Automation Tool###")
     print("################################# \n")
 
     choice = "p"
