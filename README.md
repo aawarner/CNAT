@@ -284,3 +284,5 @@ API Status Code: 204
 
 Deletion successful
 ```
+## Contributing
+See [CONTRIBUTING](./CONTRIBUTING)
