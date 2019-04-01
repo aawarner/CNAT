@@ -15,6 +15,16 @@ NFVIS 3.9.2\
 NFVIS 3.10.1\
 NFVIS 3.10.2
 
+## Requirements
+CNAT relies on these following packages:\
+PyNFVSDK\
+tabulate\
+requests\
+getpass\
+Install theses packages using pip:
+```
+pip install -r requirements.txt
+```
 ## Usage
 
 ### Interactive Mode
