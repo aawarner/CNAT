@@ -16,7 +16,7 @@ NFVIS 3.10.1\
 NFVIS 3.10.2
 
 ## Requirements
-CNAT relies on these following packages:\
+CNAT relies on the following packages:\
 PyNFVSDK\
 tabulate\
 requests\
