@@ -32,9 +32,9 @@ Install theses packages using pip:
 pip install -r requirements.txt
 ```
 CNAT requires a system with NFVIS as the installed OS. All VNF images and packages should be preinstalled on the system.
-An NFVIS sandbox is also available from Cisco dCloud.
+NFVIS is also available in the DevNet Express Cisco DNA Sandbox at Cisco dCloud
 
-https://dcloud2-rtp.cisco.com/content/demo/453732?returnPathTitleKey=content-view&isLoggingIn=true
+https://dcloud2-rtp.cisco.com
 ## Usage
 
 ### Interactive Mode
