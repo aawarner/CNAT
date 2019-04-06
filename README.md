@@ -3,7 +3,9 @@ A Python script that will automate the administration of NFVIS.
 This program will enable the retrieval of platform information 
 as well as automate the deployment and deletion of bridges, networks,
 and virtual network functions to NFVIS. This tool works in an interactive
-and non-interactive mode. Cisco NFVIS is a KVM based hypervisor that is purpose built for the 
+and non-interactive mode. 
+
+Cisco NFVIS is a KVM based hypervisor that is purpose built for the 
 virtualization of network functions. A brief description of capabilities 
 can be found here:
 
