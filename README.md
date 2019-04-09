@@ -1,3 +1,5 @@
+[![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/aawarner/CNAT)
+
 # Cisco NFVIS Automation Tool
 A Python script that will automate the administration of NFVIS. 
 This program will enable the retrieval of platform information 
