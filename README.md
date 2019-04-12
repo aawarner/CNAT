@@ -1,7 +1,7 @@
 [![published](https://static.production.devnetcloud.com/codeexchange/assets/images/devnet-published.svg)](https://developer.cisco.com/codeexchange/github/repo/aawarner/CNAT)
 
 # Cisco NFVIS Automation Tool
-A Python script that will automate the administration of NFVIS. 
+A Python program that will automate the administration of NFVIS. 
 This program will enable the retrieval of platform information 
 as well as automate the deployment and deletion of bridges, networks,
 and virtual network functions to NFVIS. This tool works in an interactive
