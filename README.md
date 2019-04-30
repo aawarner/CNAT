@@ -246,7 +246,7 @@ VNF deployment successful
 
 ```
 ```
-CDAT.py p networks bulk XML/network.xml 
+CNAT.py p networks bulk XML/network.xml 
 API Response Code: 201
 
 Request URI: https://10.10.10.10/api/config/networks
