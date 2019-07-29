@@ -1,5 +1,4 @@
-# !/usr/bin/python
-# -*-coding:utf-8-*-
+# !/usr/bin/env python3
 """
 Copyright (c) 2019 Cisco and/or its affiliates.
 This software is licensed to you under the terms of the Cisco Sample
@@ -19,17 +18,13 @@ Authors: Aaron Warner (aawarner@cisco.com)
          Wade Lehrschall (wlehrsch@cisco.com)
          Kris Swanson (kriswans@cisco.com)
 Description:    This program will perform API calls to automate the deployment and deletion of NFVIS VNF's and virtual
-                switches. The program is currently interactive only. The program also has a "demo reset" option which
+                switches. The program also has a "demo reset" option which
                 will decommission SDWAN routers in Cisco vManage, delete ENCS from Cisco DNA Center inventory, and
                 delete VNF's and virtual switches from NFVIS.
 """
 
 from PyNFVSDK import NFVIS_API_Calls as nfvis_calls
 from PyNFVSDK import NFVIS_URNs as nfvis_urns
-from PyNFVSDK import SDWAN_API_Calls as sdwan_calls
-from PyNFVSDK import SDWAN_URNs as sdwan_urns
-from PyNFVSDK import DNAC_API_Calls as dnac_calls
-from PyNFVSDK import DNAC_URNs as dnac_urns
 import xml.etree.ElementTree as ET
 import json
 from os import listdir
@@ -37,7 +32,6 @@ import sys
 import requests
 import getpass
 from tabulate import tabulate
-from requests.auth import HTTPBasicAuth
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -51,29 +45,6 @@ def getcreds():
     username = input("Username: ")
     password = getpass.getpass()
     return url, username, password
-
-
-def getdnactoken():
-    # Basic Authenication and retrieval of DNA-C session token
-    dnac = input("Enter the Cisco DNA Center IP address: \n")
-    url = "https://" + dnac
-    print("Enter the Username and Password for Cisco DNA Center: \n")
-    dnac_username = input("Username: ")
-    dnac_password = getpass.getpass()
-    headers = {"content-type": "application/json"}
-    response = requests.post(
-        "https://" + dnac + "/dna/system/api/v1/auth/token",
-        verify=False,
-        auth=HTTPBasicAuth(dnac_username, dnac_password),
-        headers=headers,
-    )
-    print("API Response Code: ", response.status_code)
-    if response.status_code == 401:
-        print("Authentication Failed to Device")
-        sys.exit()
-    else:
-        token = response.json()["Token"]
-    return dnac, url, dnac_username, dnac_password, token
 
 
 def response_parser(response_json):
@@ -240,50 +211,6 @@ def cli(args):
                 print("Deletion failed")
 
 
-def sdwan_reset(vmanage, vmanage_username, vmanage_password):
-    # Collect vManage IP Address, Username, and Password and decommission SDWAN Routers
-    url = "https://" + vmanage
-    uri, header = sdwan_urns.get("vedges", url)
-    code, response_json = sdwan_calls.get(
-        vmanage_username, vmanage_password, uri, header
-    )
-    print("API Response Code: %i :\n%s" % (code, uri))
-    if code == 401:
-        print("Authentication Failed to Device")
-        sys.exit()
-    else:
-        print("\nGetting list of SDWAN vEdge's from vManage: \n")
-        table = []
-        headers_dict = {
-            "SDWAN UUID": "uuid",
-            " Device Model": "deviceModel",
-            "Host Name": "host-name",
-            "Device IP": "deviceIP",
-            "Template": "template",
-        }
-        headers = [i for i in headers_dict.keys()]
-        for event in response_json["data"]:
-            tr = []
-            for i in headers:
-                try:
-                    tr.append(event[headers_dict[i]])
-                except:
-                    tr.append("N/A")
-                    pass
-            table.append(tr)
-        print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
-        print()
-    uuid = input("Enter the UUID of the SDWAN router you wish to decommission: ")
-    print("Decommissioning SDWAN Router...")
-    uri, header = sdwan_urns.put("decommission", url, data=uuid)
-    code, response = sdwan_calls.put(vmanage_username, vmanage_password, uri, header)
-    print("\n%s \nAPI Status Code: %i\n" % (uri, code))
-    if response.status_code != 200:
-        print("SDWAN decommissioning failed\n")
-    else:
-        print("SDWAN decommissioning successful\n")
-
-
 def nfvis_reset():
     # Delete running VNFs' from NFVIS
     url, username, password = getcreds()
@@ -317,39 +244,6 @@ def nfvis_reset():
         print("VNF deletion failed")
     else:
         print("VNF deletion successful")
-
-
-def dnac_reset():
-    # Gather DNAC IP Address, Username, Password, and delete ENCS from inventory
-    dnac, url, dnac_username, dnac_password, token = getdnactoken()
-    uri, header = dnac_urns.get("network-devices", url, token=token)
-    code, response_json = dnac_calls.get(uri, header)
-    print("API Response Code: %i :\n%s" % (code, uri))
-    print("\nGetting list of Network Devices in inventory from DNA-C\n")
-    table = []
-    headers_dict = {"Device Hostname": "hostname", "Device ID": "id"}
-    headers = [i for i in headers_dict.keys()]
-    for event in response_json["response"]:
-        tr = []
-        for i in headers:
-            try:
-                tr.append(event[headers_dict[i]])
-            except:
-                tr.append("N/A")
-                pass
-        table.append(tr)
-    print(tabulate(table, headers=headers, tablefmt="fancy_grid"))
-    print()
-    device_id = input("Enter the Device ID of the device you wish to delete: ")
-    uri, header, payload = dnac_urns.delete(
-        "device", url, device_id=device_id, token=token
-    )
-    code, response = dnac_calls.delete(uri, header, payload)
-    print("\n%s \nAPI Status Code: %i\n" % (uri, code))
-    if response.status_code != 202:
-        print("Device deletion from inventory failed\n")
-    else:
-        print("Device deletion from inventory successful\n")
 
 
 def deploy_bridge(url, username, password):
@@ -534,7 +428,6 @@ def print_options():
     print(" '5' Deploy Virtual Switch to NFVIS from file")
     print(" '6' Deploy VNF to NFVIS from file")
     print(" '7' Deploy Service Chained VNFs to NFVIS")
-    print(" '8' Reset demo environment")
     print(" 'p' print options")
     print(" 'q' quit the program\n")
 
@@ -738,46 +631,6 @@ def main():
                 print(
                     "Virtual network function deployment complete.\n Service chain deployment complete. \n"
                 )
-            print_options()
-            choice = input("Option: ")
-
-        elif choice == "8":
-            # API calls to reset demo environment, print demo environment reset
-            vmanage = input("Enter the vManage IP address: \n")
-            print("Enter the Username and Password for vManage: \n")
-            vmanage_username = input("Username: ")
-            vmanage_password = getpass.getpass()
-            sdwan_reset(vmanage, vmanage_username, vmanage_password)
-            answer = input(
-                "Would you like to decommission another SDWAN router? (y or n) \n"
-            )
-            while answer == ("y"):
-                sdwan_reset(vmanage, vmanage_username, vmanage_password)
-                answer = input(
-                    "Would you like to decommission another SDWAN router? (y or n) \n"
-                )
-            else:
-                print("Great. Let's reset NFVIS. \n")
-            nfvis_reset()
-            answer = input("Would you like to delete another NFVIS VNF? (y or n) \n")
-            while answer == ("y"):
-                nfvis_reset()
-                answer = input(
-                    "Would you like to delete another NFVIS VNF? (y or n) \n"
-                )
-            else:
-                print("Great. Let's reset Cisco DNA Center. \n")
-            dnac_reset()
-            answer = input(
-                "Would you like to delete another device from DNA-C inventory? (y or n) \n"
-            )
-            while answer == ("y"):
-                dnac_reset()
-                answer = input(
-                    "Would you like to delete another device from DNA-C inventory? (y or n) \n"
-                )
-            else:
-                print("Great. Demo Environment has been reset. \n")
             print_options()
             choice = input("Option: ")
 
