@@ -27,6 +27,7 @@ from PyNFVSDK import NFVIS_API_Calls as nfvis_calls
 from PyNFVSDK import NFVIS_URNs as nfvis_urns
 import xml.etree.ElementTree as ET
 import json
+import netmiko
 from os import listdir
 import sys
 import requests
@@ -417,8 +418,22 @@ def deploy_vnf(url, username, password):
         print("VNF deployment successful\n")
 
 
+def scp_file(nfvis, username, password, s_file, d_file):
+    conn = netmiko.ConnectHandler(host=nfvis, port=22222, device_type="linux", username=username,
+                                  password=password)
+    scp_conn = netmiko.SCPConn(conn)
+    print("#" * 20)
+    print("Beginning SCP file transfer...\nPlease wait...")
+    scp_conn.scp_transfer_file(s_file, d_file)
+    print("#" * 20)
+    print("SCP file transfer complete.")
+    conn.disconnect()
+
 def print_options():
     # Menu Options
+    print("#################################")
+    print("###Cisco NFVIS Automation Tool###")
+    print("################################# \n")
     print("Select an option from the menu below. \n")
     print(" Options: \n")
     print(" '1' List NFVIS system information")
@@ -428,6 +443,7 @@ def print_options():
     print(" '5' Deploy Virtual Switch to NFVIS from file")
     print(" '6' Deploy VNF to NFVIS from file")
     print(" '7' Deploy Service Chained VNFs to NFVIS")
+    print(" '8' Upload VNF image to NFVIS")
     print(" 'p' print options")
     print(" 'q' quit the program\n")
 
@@ -438,9 +454,6 @@ def main():
     Program Entry Point
     """
 
-    print("#################################")
-    print("###Cisco NFVIS Automation Tool###")
-    print("################################# \n")
 
     choice = "p"
     while choice != "q":
@@ -631,6 +644,16 @@ def main():
                 print(
                     "Virtual network function deployment complete.\n Service chain deployment complete. \n"
                 )
+            print_options()
+            choice = input("Option: ")
+
+        elif choice == "8":
+            # SCP image to NFVIS system
+            url, username, password = getcreds()
+            nfvis = url.strip("https://")
+            s_file = input("Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: ")
+            d_file = input("Example: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: ")
+            scp_file(nfvis, username, password, s_file, d_file)
             print_options()
             choice = input("Option: ")
 

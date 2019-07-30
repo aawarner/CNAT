@@ -2,3 +2,4 @@ PyNFVSDK
 tabulate
 requests
 getpass
+netmiko
