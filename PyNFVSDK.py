@@ -23,6 +23,7 @@ Description:    This program will provide reusable calls when interacting with N
 
 import requests
 import json
+from termcolor import cprint
 from requests.auth import HTTPBasicAuth
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -47,14 +48,27 @@ class NFVIS_API_Calls:
 
     def get(username, password, uri, header):
         """gets the specified uri and returns: response code, json formatted response. """
-        response = requests.get(
-            uri,
-            verify=False,
-            auth=HTTPBasicAuth(username, password),
-            headers=header,
-            timeout=10,
-        )
-        if response.status_code != 204:
+        try:
+            response = requests.get(
+                uri,
+                verify=False,
+                auth=HTTPBasicAuth(username, password),
+                headers=header,
+                timeout=10
+            )
+        except requests.exceptions.RequestException as e:
+            cprint(e, "red")
+            code = 400
+            response = {}
+            return code, response
+
+        if response.status_code == 400:
+            code = response.status_code
+            response = {}
+        elif response.status_code == 401:
+            code = response.status_code
+            response = {}
+        elif response.status_code != 204:
             code = response.status_code
             response = response.json()
         else:

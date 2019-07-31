@@ -29,6 +29,7 @@ import xml.etree.ElementTree as ET
 import json
 import netmiko
 from os import listdir
+from termcolor import cprint
 import sys
 import requests
 import getpass
@@ -94,7 +95,16 @@ def response_parser(response_json):
 
 
 def cli(args):
-    if len(sys.argv) == 5:
+    if len(sys.argv) == 7:
+        method, name_ip, username, password, s_file, d_file = (
+            sys.argv[1],
+            sys.argv[2],
+            sys.argv[3],
+            sys.argv[4],
+            sys.argv[5],
+            sys.argv[6],
+        )
+    elif len(sys.argv) == 5:
         method, key, name_ip, setting = (
             sys.argv[1],
             sys.argv[2],
@@ -130,16 +140,21 @@ def cli(args):
                 "\nTo retrieve information about the system use the get method.\n"
                 "To delete an existing bridge, network, or VNF use the delete method.\n"
                 "To deploy a new bridge, network, or VNF use the post method.\n"
-                "\nWhen using method G,P, or D this program will import the IP addresses\n"
-                "from the creds.json file and make the API call on all devices in the file.\n"
+                "\nWhen using method g, p, or d this program will check the given IP address\n"
+                "against the creds.json file. If the IP address is present, then the credentials\n"
+                "in the creds.json file will be used. If the key work 'bulk' is used instead of\n"
+                "an IP address then the API call will be run on all devices in the creds.json file.\n"
                 "\nExamples:\n"
-                "Get Method - CDAT.py g networks 10.10.10.10\n"
-                "Post Method - CDAT.py P deployments 10.10.10.10 ASAv_ENCS.xml\n"
-                "Delete Method - CDAT.py d deployments 10.10.10.10 ASAv"
+                "Get Method - CNAT.py g networks 10.10.10.10\n"
+                "Post Method - CNAT.py P deployments 10.10.10.10 ASAv_ENCS.xml\n"
+                "Delete Method - CNAT.py d deployments 10.10.10.10 ASAv\n"
+                "\nTo upload an image to NFVIS the 's' method can be used. This requires 6 arguments.\n"
+                "Method, IP Address, username, password, source file, and destination file\n"
+                ""
             )
             sys.exit()
         else:
-            print("Invalid option entered. Try again.")
+            cprint("Invalid option entered. Use sys.argv 'h' for help.", "red")
             sys.exit()
     else:
         method, key, name_ip = (sys.argv[1], sys.argv[2], sys.argv[3])
@@ -171,9 +186,9 @@ def cli(args):
             username, password = (list(creds[i].keys())[0], list(creds[i].values())[0])
             uri, header = nfvis_urns.get(key, url)
             code, response_json = nfvis_calls.get(username, password, uri, header)
-            print(
+            cprint(
                 "API Response Code: %i\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-                % (code, uri, response_json)
+                % (code, uri, response_json), "green"
             )
             response_parser(response_json)
     if method is "p":
@@ -186,14 +201,14 @@ def cli(args):
             code, response = nfvis_calls.post(
                 username, password, uri, header, xml_data=contents
             )
-            print(
+            cprint(
                 "API Response Code: %i\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-                % (code, uri, response)
+                % (code, uri, response), "green"
             )
             if code == 201:
-                print("Deployment successful")
+                cprint("Deployment successful", "green")
             else:
-                print("Deployment failed")
+                cprint("Deployment failed", "red")
     if method is "d":
         for i in ip_list:
             url = "https://%s" % i
@@ -202,15 +217,17 @@ def cli(args):
                 key, url, vnf=setting, bridge=setting, network=setting
             )
             code, response = nfvis_calls.delete(username, password, uri, header)
-            print(
+            cprint(
                 "API Response Code: %i\n\nRequest URI: %s\n\nJSON Reponse:\n\n%s\n\n"
-                % (code, uri, response)
+                % (code, uri, response), "green"
             )
             if code == 204:
-                print("Deletion successful")
+                cprint("Deletion successful", "green")
             else:
-                print("Deletion failed")
-
+                cprint("Deletion failed"), "red"
+    if method is "s":
+        nfvis = name_ip
+        scp_file(nfvis, username, password, s_file, d_file)
 
 def nfvis_reset():
     # Delete running VNFs' from NFVIS
@@ -219,7 +236,7 @@ def nfvis_reset():
     code, response_json = nfvis_calls.get(username, password, uri, header)
     print("API Response Code: %i :\n%s" % (code, uri))
     if code == 401:
-        print("\nAuthentication Failed to Device")
+        cprint("\nAuthentication Failed to Device", "red")
     else:
         print("\nCurrently Deployed VNF's...\n")
     try:
@@ -242,9 +259,9 @@ def nfvis_reset():
     code, response = nfvis_calls.delete(username, password, uri, header)
     print("\n%s \nAPI Status Code: %i\n" % (uri, code))
     if code != 204:
-        print("VNF deletion failed")
+        cprint("VNF deletion failed", "red")
     else:
-        print("VNF deletion successful")
+        cprint("VNF deletion successful", "green")
 
 
 def deploy_bridge(url, username, password):
@@ -262,9 +279,9 @@ def deploy_bridge(url, username, password):
     print("\n%s \nAPI Status Code: %i\n" % (uri, code))
 
     if code != 201:
-        print("Bridge deployment failed\n")
+        cprint("Bridge deployment failed\n", "red")
     else:
-        print("Bridge deployment successful\n")
+        cprint("Bridge deployment successful\n", "green")
 
 
 def deploy_vnetwork(url, username, password):
@@ -288,9 +305,9 @@ def deploy_vnetwork(url, username, password):
     )
     print("\n%s \nAPI Status Code: %i\n" % (uri, code))
     if code != 201:
-        print("Network deployment failed\n")
+        cprint("Network deployment failed\n", "red")
     else:
-        print("Network deployment successful\n")
+        cprint("Network deployment successful\n", "green")
 
 
 def deploy_vnf(url, username, password):
@@ -308,7 +325,7 @@ def deploy_vnf(url, username, password):
     code, response_json = nfvis_calls.get(username, password, uri, header)
     print("API Response Code: %i :\n%s" % (code, uri))
     if code == 401:
-        print("\nAuthentication Failed to Device")
+        cprint("\nAuthentication Failed to Device", "red")
     else:
         print()
     try:
@@ -331,7 +348,7 @@ def deploy_vnf(url, username, password):
     code, response_json = nfvis_calls.get(username, password, uri, header)
     print("API Response Code: %i :\n%s" % (code, uri))
     if code == 401:
-        print("\nAuthentication Failed to Device")
+        cprint("\nAuthentication Failed to Device", "red")
     else:
         print()
     try:
@@ -353,7 +370,7 @@ def deploy_vnf(url, username, password):
     print("API Response Code: %i :\n%s" % (code, uri))
 
     if code == 401:
-        print("Authentication Failed to Device")
+        cprint("Authentication Failed to Device", "red")
         sys.exit()
     else:
         print("Currently Deployed Virtual Switches on NFVIS: \n")
@@ -413,21 +430,33 @@ def deploy_vnf(url, username, password):
     )
     print("\n%s \nAPI Status Code: %i\n" % (uri, code))
     if code != 201:
-        print("VNF deployment failed\n")
+        cprint("VNF deployment failed\n", "red")
     else:
-        print("VNF deployment successful\n")
+        cprint("VNF deployment successful\n", "green")
 
 
 def scp_file(nfvis, username, password, s_file, d_file):
-    conn = netmiko.ConnectHandler(host=nfvis, port=22222, device_type="linux", username=username,
-                                  password=password)
-    scp_conn = netmiko.SCPConn(conn)
-    print("#" * 20)
-    print("Beginning SCP file transfer...\nPlease wait...")
-    scp_conn.scp_transfer_file(s_file, d_file)
-    print("#" * 20)
-    print("SCP file transfer complete.")
-    conn.disconnect()
+    try:
+        conn = netmiko.ConnectHandler(
+            host=nfvis,
+            port=22222,
+            device_type="linux",
+            username=username,
+            password=password,
+            timeout=10
+        )
+        scp_conn = netmiko.SCPConn(conn)
+        print("#" * 20)
+        cprint("Beginning SCP file transfer...\nPlease wait...", "green")
+        scp_conn.scp_transfer_file(s_file, d_file)
+        print("#" * 20)
+        cprint("SCP file transfer complete.\n", "green")
+        conn.disconnect()
+    except netmiko.NetMikoTimeoutException:
+        cprint("\nFailed: SSH session timed out. Check network connectivity and try again.\n", "red")
+    except netmiko.NetMikoAuthenticationException:
+        cprint("\nFailed: Authentication failed.\n", "red")
+
 
 def print_options():
     # Menu Options
@@ -454,7 +483,6 @@ def main():
     Program Entry Point
     """
 
-
     choice = "p"
     while choice != "q":
         if choice == "1":
@@ -462,25 +490,27 @@ def main():
             url, username, password = getcreds()
             uri, header = nfvis_urns.get("platform-details", url)
             code, response_json = nfvis_calls.get(username, password, uri, header)
-            print("API Response Code: %i :\n%s" % (code, uri))
+            print("API Response Code: %i\n%s" % (code, uri))
             if code == 401:
-                print("Authentication Failed to Device \n")
+                cprint("Authentication Failed to Device \n", "red")
+            elif code == 400:
+                cprint("Connection timed out. Check network connection.\n", "red")
             else:
                 print("Platform Details: \n")
-            try:
-                print(
-                    tabulate(
-                        [
-                            i
-                            for i in response_json["platform_info:platform-detail"][
-                                "hardware_info"
-                            ].items()
-                        ],
-                        tablefmt="fancy_grid",
+                try:
+                    print(
+                        tabulate(
+                            [
+                                i
+                                for i in response_json["platform_info:platform-detail"][
+                                    "hardware_info"
+                                ].items()
+                            ],
+                            tablefmt="fancy_grid",
+                        )
                     )
-                )
-            except Exception as e:
-                print(repr(e))
+                except Exception as e:
+                    print(repr(e))
             print_options()
             choice = input("Option: ")
 
@@ -489,24 +519,26 @@ def main():
             url, username, password = getcreds()
             uri, header = nfvis_urns.get("deployments", url)
             code, response_json = nfvis_calls.get(username, password, uri, header)
-            print("API Response Code: %i :\n%s" % (code, uri))
+            print("API Response Code: %i \n%s" % (code, uri))
             if code == 401:
-                print("Authentication Failed to Device \n")
+                cprint("Authentication Failed to Device \n", "red")
+            elif code == 400:
+                cprint("Connection timed out. Check network connection.\n", "red")
             else:
                 print("\nCurrently Deployed VNF's: \n")
-            try:
-                print(
-                    tabulate(
-                        [i for i in response_json["vmlc:deployments"]["deployment"]],
-                        tablefmt="fancy_grid",
+                try:
+                    print(
+                        tabulate(
+                            [i for i in response_json["vmlc:deployments"]["deployment"]],
+                            tablefmt="fancy_grid",
+                        )
+                        + "\n"
                     )
-                    + "\n"
-                )
-            except Exception as e:
-                if code == 204:
-                    print("There are no running VNF deployments on device. \n")
-                else:
-                    print(repr(e))
+                except Exception as e:
+                    if code == 204:
+                        print("There are no running VNF deployments on device. \n")
+                    else:
+                        print(repr(e))
             print_options()
             choice = input("Option: ")
 
@@ -517,69 +549,70 @@ def main():
 
             uri, header = nfvis_urns.get("networks", url)
             code, response_json = nfvis_calls.get(username, password, uri, header)
-            print("API Response Code: %i :\n%s" % (code, uri))
+            print("API Response Code: %i \n%s" % (code, uri))
 
             if code == 401:
-                print("Authentication Failed to Device")
-                sys.exit()
+                cprint("Authentication Failed to Device", "red")
+            elif code == 400:
+                cprint("Connection timed out. Check network connection.\n", "red")
             else:
                 print("Currently Deployed Virtual Switches on NFVIS: \n")
-            try:
-                print(
-                    tabulate(
-                        [i for i in response_json["network:networks"]["network"]],
-                        tablefmt="fancy_grid",
+                try:
+                    print(
+                        tabulate(
+                            [i for i in response_json["network:networks"]["network"]],
+                            tablefmt="fancy_grid",
+                        )
+                        + "\n"
                     )
-                    + "\n"
+                except Exception as e:
+                    print(repr(e))
+                print()
+                cprint(
+                    "NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated! \n", "red"
                 )
-            except Exception as e:
-                print(repr(e))
-            print()
-            print(
-                "NOTE:  Do not delete the lan-net, wan-net, wan2-net or SRIOV vswitches, these are system generated! \n"
-            )
-            vswitch = input("Which Virtual Switch would you like to delete? ")
-            uri, header = nfvis_urns.delete("networks", url, network=vswitch)
-            code, response = nfvis_calls.delete(username, password, uri, header)
-            print("API Response Code: %i :\n%s" % (code, uri))
+                vswitch = input("Which Virtual Switch would you like to delete? ")
+                uri, header = nfvis_urns.delete("networks", url, network=vswitch)
+                code, response = nfvis_calls.delete(username, password, uri, header)
+                print("API Response Code: %i \n%s" % (code, uri))
 
-            if code != 204:
-                print("Virtual Switch deletion failed \n")
-            else:
-                print("Virtual Switch deletion successful \n")
+                if code != 204:
+                    cprint("Virtual Switch deletion failed \n", "red")
+                else:
+                    cprint("Virtual Switch deletion successful \n", "green")
 
-            # API call to get running bridges on NFVIS device
+                # API call to get running bridges on NFVIS device
 
-            uri, header = nfvis_urns.get("bridges", url)
-            code, response_json = nfvis_calls.get(username, password, uri, header)
-            print("API Response Code: %i :\n%s" % (code, uri))
+                uri, header = nfvis_urns.get("bridges", url)
+                code, response_json = nfvis_calls.get(username, password, uri, header)
+                print("API Response Code: %i \n%s" % (code, uri))
 
-            if code == 401:
-                print("Authentication Failed to Device")
-                sys.exit()
-            else:
-                print("Currently Deployed Virtual Bridges on NFVIS: \n")
-            try:
-                [
-                    print(i["name"] + "\n")
-                    for i in response_json["network:bridges"]["bridge"]
-                ]
-            except Exception as e:
-                print(repr(e))
-            print()
-            print(
-                "NOTE:  Do not delete the lan-br, wan-br, wan2-br or SRIOV vswitches, these are system generated! \n"
-            )
-            bridge = input("Which Virtual Bridge would you like to delete? ")
+                if code == 401:
+                    cprint("Authentication Failed to Device", "red")
+                    sys.exit()
+                else:
+                    print("Currently Deployed Virtual Bridges on NFVIS: \n")
+                try:
+                    [
+                        print(i["name"] + "\n")
+                        for i in response_json["network:bridges"]["bridge"]
+                    ]
+                except Exception as e:
+                    print(repr(e))
+                print()
+                cprint(
+                    "NOTE:  Do not delete the lan-br, wan-br, wan2-br or SRIOV vswitches, these are system generated! \n", "red"
+                )
+                bridge = input("Which Virtual Bridge would you like to delete? ")
 
-            uri, header = nfvis_urns.delete("bridges", url, bridge=bridge)
-            code, response = nfvis_calls.delete(username, password, uri, header)
-            print("API Response Code: %i :\n%s" % (code, uri))
+                uri, header = nfvis_urns.delete("bridges", url, bridge=bridge)
+                code, response = nfvis_calls.delete(username, password, uri, header)
+                print("API Response Code: %i \n%s" % (code, uri))
 
-            if code != 204:
-                print("Virtual Bridge deletion failed \n")
-            else:
-                print("Virtual Bridge deletion successful \n")
+                if code != 204:
+                    cprint("Virtual Bridge deletion failed \n", "red")
+                else:
+                    cprint("Virtual Bridge deletion successful \n", "green")
             print_options()
             choice = input("Option: ")
 
@@ -651,8 +684,12 @@ def main():
             # SCP image to NFVIS system
             url, username, password = getcreds()
             nfvis = url.strip("https://")
-            s_file = input("Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: ")
-            d_file = input("Example: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: ")
+            s_file = input(
+                "Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: "
+            )
+            d_file = input(
+                "\nExample: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: "
+            )
             scp_file(nfvis, username, password, s_file, d_file)
             print_options()
             choice = input("Option: ")
@@ -664,8 +701,9 @@ def main():
         elif (
             choice != "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "p" or "q"
         ):
-            print("Wrong option was selected \n")
-            sys.exit()
+            cprint("Invalid option was selected. Please choose a valid option. \n", "red")
+            print_options()
+            choice = input("Option: ")
 
 
 if __name__ == "__main__":
