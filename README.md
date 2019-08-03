@@ -31,7 +31,7 @@ PyNFVSDK\
 tabulate\
 requests\
 getpass\
-netmiko\
+netmiko
 
 Install theses packages using pip:
 ```
