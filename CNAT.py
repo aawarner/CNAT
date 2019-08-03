@@ -33,6 +33,8 @@ from termcolor import cprint
 import sys
 import requests
 import getpass
+import socket
+import scp
 from tabulate import tabulate
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -41,7 +43,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 def getcreds():
     # Collects NFVIS IP Address, Username, and Password
-    nfvis = input("What is the IP address of the NFVIS system: \n")
+    nfvis = input("What is the IP address of the NFVIS system: ")
     url = "https://" + nfvis
     print("Enter your username and password. ")
     username = input("Username: ")
@@ -226,8 +228,12 @@ def cli(args):
             else:
                 cprint("Deletion failed"), "red"
     if method is "s":
-        nfvis = name_ip
-        scp_file(nfvis, username, password, s_file, d_file)
+        for i in ip_list:
+            nfvis = key
+            s_file = name_ip
+            d_file = setting
+            username, password = (list(creds[i].keys())[0], list(creds[i].values())[0])
+            scp_file(nfvis, username, password, s_file, d_file)
 
 def nfvis_reset():
     # Delete running VNFs' from NFVIS
@@ -456,6 +462,23 @@ def scp_file(nfvis, username, password, s_file, d_file):
         cprint("\nFailed: SSH session timed out. Check network connectivity and try again.\n", "red")
     except netmiko.NetMikoAuthenticationException:
         cprint("\nFailed: Authentication failed.\n", "red")
+    except FileNotFoundError:
+        cprint("Invalid source file name entered. Please try again.", "red")
+    except scp.SCPException:
+        cprint("Invalid destination file name entered. Please try again.", "red")
+
+
+def portCheck(nfvis, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(3)
+    try:
+        s.connect((nfvis, int(port)))
+        s.shutdown(socket.SHUT_RDWR)
+        return True
+    except:
+        return False
+    finally:
+        s.close()
 
 
 def print_options():
@@ -684,15 +707,43 @@ def main():
             # SCP image to NFVIS system
             url, username, password = getcreds()
             nfvis = url.strip("https://")
-            s_file = input(
-                "Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: "
-            )
-            d_file = input(
-                "\nExample: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: "
-            )
-            scp_file(nfvis, username, password, s_file, d_file)
-            print_options()
-            choice = input("Option: ")
+
+            if portCheck(nfvis, 22222) is True:
+
+                s_file = input(
+                    "Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: "
+                )
+                d_file = input(
+                    "\nExample: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: "
+                )
+                scp_file(nfvis, username, password, s_file, d_file)
+                print_options()
+                choice = input("Option: ")
+            else:
+                cprint("SCP is not enabled on the system.\n", "red")
+                answer = input("Would you like to enable SCP now? (y or n)")
+                if answer == "y":
+                    acl = input("Enter the permitted IP range for SCP access to the device: (0.0.0.0/0) ")
+                    config = ["system settings ip-receive-acl " + acl + " service scpd priority 1 action accept", "commit"]
+                    cprint("Enabling SCP on the system", "green")
+                    cprint("Sending command, " + config[0], "green")
+                    conn = netmiko.ConnectHandler(ip=nfvis, device_type="cisco_ios", username=username,
+                                                  password=password)
+                    conn.send_config_set(config)
+                    cprint("SCP enabled for " + acl, "green")
+                    s_file = input(
+                        "Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: "
+                    )
+                    d_file = input(
+                        "\nExample: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: "
+                    )
+                    scp_file(nfvis, username, password, s_file, d_file)
+                    print_options()
+                    choice = input("Option: ")
+
+                else:
+                    print_options()
+                    choice = input("Option: ")
 
         elif choice == "p":
             print_options()
