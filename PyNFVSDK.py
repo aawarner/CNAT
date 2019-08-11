@@ -136,6 +136,7 @@ class NFVIS_URNs:
             "networks": "%s/api/config/networks" % url,
             "deployments": "%s/api/config/vm_lifecycle/tenants/tenant/admin/deployments"
             % url,
+            "images": "%s/api/config/vm_lifecycle/images" % url,
         }
         rest_post_header = {
             "json": {

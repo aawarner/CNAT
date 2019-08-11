@@ -3,3 +3,5 @@ tabulate
 requests
 getpass
 netmiko
+scp
+termcolor

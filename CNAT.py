@@ -458,6 +458,23 @@ def scp_file(nfvis, username, password, s_file, d_file):
         print("#" * 20)
         cprint("SCP file transfer complete.\n", "green")
         conn.disconnect()
+        image = s_file.split("/")
+        name = image[-1]
+        payload = "<image><name>" + name + "</name>" \
+                  "<src>" + d_file + "</src></image>"
+        print(payload)
+        url = "https://" + nfvis
+        uri, header, post_data = nfvis_urns.post("images", url, format="xml")
+        code, response = nfvis_calls.post(
+            username, password, uri, header, xml_data=payload
+        )
+        print("\n%s \nAPI Status Code: %i\n" % (uri, code))
+
+        if code != 201:
+            cprint("Bridge deployment failed\n", "red")
+        else:
+            cprint("Bridge deployment successful\n", "green")
+
     except netmiko.NetMikoTimeoutException:
         cprint("\nFailed: SSH session timed out. Check network connectivity and try again.\n", "red")
     except netmiko.NetMikoAuthenticationException:
@@ -727,17 +744,26 @@ def main():
                     config = ["system settings ip-receive-acl " + acl + " service scpd priority 1 action accept", "commit"]
                     cprint("Enabling SCP on the system", "green")
                     cprint("Sending command, " + config[0], "green")
-                    conn = netmiko.ConnectHandler(ip=nfvis, device_type="cisco_ios", username=username,
-                                                  password=password)
-                    conn.send_config_set(config)
-                    cprint("SCP enabled for " + acl, "green")
-                    s_file = input(
-                        "Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: "
-                    )
-                    d_file = input(
-                        "\nExample: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: "
-                    )
-                    scp_file(nfvis, username, password, s_file, d_file)
+                    try:
+                        conn = netmiko.ConnectHandler(ip=nfvis, device_type="cisco_ios", username=username,
+                                                      password=password)
+                        conn.send_config_set(config)
+                        cprint("SCP enabled for " + acl, "green")
+                        s_file = input(
+                            "Example: Images/TinyLinux.tar.gz\nEnter the image name along with the full path of the image: "
+                        )
+                        d_file = input(
+                            "\nExample: /data/intdatastore/uploads/TinyLinuxNew.tar.gz\nEnter the destination file path and name: "
+                        )
+                        scp_file(nfvis, username, password, s_file, d_file)
+                    except netmiko.NetMikoTimeoutException:
+                        cprint("\nFailed: SSH session timed out. Check network connectivity and try again.\n", "red")
+                    except netmiko.NetMikoAuthenticationException:
+                        cprint("\nFailed: Authentication failed.\n", "red")
+                    except FileNotFoundError:
+                        cprint("Invalid source file name entered. Please try again.", "red")
+                    except scp.SCPException:
+                        cprint("Invalid destination file name entered. Please try again.", "red")
                     print_options()
                     choice = input("Option: ")
 
